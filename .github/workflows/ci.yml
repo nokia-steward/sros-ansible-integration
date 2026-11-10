@@ -5,62 +5,119 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
   push:
-    branches: [main]
+    branches: [master, main]
   workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  COLLECTION_PATH: ansible_collections/nokia/sros
+
 jobs:
-  # Generate test matrix from test-definitions.yml
+  # Generate the sanity and integration matrices from .github/test-matrix.yml
   generate-matrix:
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      sanity: ${{ steps.set-matrix.outputs.sanity }}
+      integration: ${{ steps.set-matrix.outputs.integration }}
     steps:
       - name: Checkout
         uses: actions/checkout@v5
-      
+
       - name: Install PyYAML
         run: pip install pyyaml
-      
-      - name: Generate Matrix from test-definitions.yml
+
+      - name: Generate matrices from test-matrix.yml
         id: set-matrix
         run: |
           python3 << 'EOF' >> $GITHUB_OUTPUT
-          import yaml
           import json
-          
+          import yaml
+
           with open('.github/test-matrix.yml', 'r') as f:
-              config = yaml.safe_load(f)
-          
-          test_matrix = config['test_matrix']
-          
-          # Generate ALL combinations (cartesian product)
-          matrix = {
-              "include": []
-          }
-          
-          for python_ver in test_matrix['python_versions']:
-              for sros_ver in test_matrix['sros_versions']:
-                  for ansible_ver in test_matrix['ansible_versions']:
-                      matrix["include"].append({
-                          "python-version": python_ver,
-                          "sros-version": sros_ver,
-                          "ansible-version": ansible_ver
-                      })
-          
-          print(f"matrix={json.dumps(matrix)}")
+              test_matrix = yaml.safe_load(f)['test_matrix']
+
+          controllers = test_matrix['controllers']
+          recommended = test_matrix['recommended']
+          sros_versions = test_matrix['sros_versions']
+
+          sanity = [
+              {"python-version": c['python'], "ansible-version": c['ansible']}
+              for c in controllers
+          ]
+
+          # Every controller against the newest SR OS release, plus the
+          # recommended controller against every SR OS release
+          pairs = [(c, sros_versions[-1]) for c in controllers]
+          pairs += [(recommended, s) for s in sros_versions]
+          integration = []
+          for c, s in pairs:
+              entry = {
+                  "python-version": c['python'],
+                  "ansible-version": c['ansible'],
+                  "sros-version": s,
+              }
+              if entry not in integration:
+                  integration.append(entry)
+
+          print(f"sanity={json.dumps({'include': sanity})}")
+          print(f"integration={json.dumps({'include': integration})}")
           EOF
 
   sanity:
+    name: sanity (ansible-core ${{ matrix.ansible-version }}, Python ${{ matrix.python-version }})
     needs: generate-matrix
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.generate-matrix.outputs.sanity) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          path: ${{ env.COLLECTION_PATH }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install ansible-core ${{ matrix.ansible-version }}
+        run: |
+          python -m pip install --upgrade pip
+          pip install "ansible-core==${{ matrix.ansible-version }}.*"
+
+      # ansible-test resolves collection dependencies from the same collection root
+      - name: Install collection dependencies
+        run: ansible-galaxy collection install -p "${{ github.workspace }}" ansible.netcommon ansible.utils
+
+      - name: Sanity tests
+        working-directory: ${{ env.COLLECTION_PATH }}
+        run: ansible-test sanity --venv --python ${{ matrix.python-version }} -v --color
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sanity-${{ matrix.ansible-version }}-py${{ matrix.python-version }}
+          path: ${{ env.COLLECTION_PATH }}/tests/output/
+          if-no-files-found: ignore
+
+  integration:
+    name: integration (ansible-core ${{ matrix.ansible-version }}, Python ${{ matrix.python-version }}, SR OS ${{ matrix.sros-version }})
+    needs: [generate-matrix, sanity]
     runs-on: ubuntu-latest
     env:
       SRSIM_LICENSE: ${{ secrets.SRSIM_LICENSE }}
+      SROS_VERSION: ${{ matrix.sros-version }}
     strategy:
       fail-fast: false
-      matrix: ${{ fromJson(needs.generate-matrix.outputs.matrix) }}
+      matrix: ${{ fromJson(needs.generate-matrix.outputs.integration) }}
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -69,7 +126,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      
+
       - name: Upgrade pip
         run: python -m pip install --upgrade pip
 
@@ -78,11 +135,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libssh-dev
 
-      - name: Install Python Requirements
-        run: pip install -r requirements.txt
-
-      - name: Install Ansible (specific version)
-        run: pip install "ansible-core==${{ matrix.ansible-version }}.*"
+      - name: Install ansible-core ${{ matrix.ansible-version }} and Python requirements
+        run: pip install -r requirements.txt "ansible-core==${{ matrix.ansible-version }}.*"
 
       - name: Install Ansible collections
         run: |
@@ -95,21 +149,14 @@ jobs:
       - name: Install containerlab
         run: bash -c "$(curl -sL https://get.containerlab.dev)"
 
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
+      # Same image as tests/topo.clab.yml, which selects the tag from SROS_VERSION
       - name: Pull nokia_srsim docker image
         run: |
-          docker pull ghcr.io/nokia/nokia_srsim:${{ matrix.sros-version }}
-#          docker pull ghcr.io/nokia/srlinux:latest
+          docker pull "registry.srlinux.dev/pub/nokia_srsim:${SROS_VERSION}"
 
       - name: Create license file
         run: |
-          echo $SRSIM_LICENSE > tests/license.txt
+          printf '%s\n' "$SRSIM_LICENSE" > tests/license.txt
 
       - name: Run Tests
         run: |

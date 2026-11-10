@@ -1,0 +1,32 @@
+# PyLint for Nokia SR OS Ansible collection plugins.
+# Same policy as nokia.nsp: keep checks enabled; use inline disables only where the
+# Ansible/netcommon API requires it (see plugins/cliconf/*.py).
+
+[FORMAT]
+max-line-length = 120
+
+[BASIC]
+good-names =
+    i,j,k,
+    ex,Run,_,
+    x,y,z,
+    id,uuid,
+    format,
+    fp,fd,
+    f,
+
+[SIMILARITIES]
+min-similarity-lines = 10
+ignore-comments = yes
+ignore-docstrings = yes
+ignore-imports = yes
+
+[MESSAGES CONTROL]
+# Plugins document behaviour in DOCUMENTATION blocks, not Python docstrings (same as Galaxy).
+disable =
+    missing-module-docstring,
+    missing-class-docstring,
+    missing-function-docstring,
+
+[TYPECHECK]
+ignored-modules = ansible,ansible_collections

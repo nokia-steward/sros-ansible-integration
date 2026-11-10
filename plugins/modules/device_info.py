@@ -5,9 +5,14 @@
 
 DOCUMENTATION = '''
 ---
-module: nokia.sros.device_info
-author: Nokia
+module: device_info
+author: Sven Wisotzky (@wisotzky)
 short_description: Return device information
+description:
+  - Returns network OS, hostname, model, platform, software version and
+    configuration mode of the connected Nokia SR OS device.
+  - Works with the CLI (P(ansible.netcommon.network_cli#connection)) and NETCONF
+    (P(ansible.netcommon.netconf#connection)) connections of this collection.
 '''
 
 EXAMPLES = '''
@@ -28,14 +33,15 @@ output:
     sros_config_mode: "classic"
 '''
 
+# pylint: disable=wrong-import-position
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.connection import Connection
 
 
 def main():
-    argument_spec = dict()
-    module = AnsibleModule(argument_spec=argument_spec)
-    connection = Connection(module._socket_path)
+    argument_spec = {}
+    module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=True)
+    connection = Connection(module._socket_path)  # pylint: disable=protected-access
 
     device_info = connection.get_device_info() or {}
     warnings = device_info.pop('warnings', None)

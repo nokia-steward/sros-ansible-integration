@@ -1,0 +1,73 @@
+# {{ page.fqcn }}{% if page.type != 'module' %} {{ page.type }} plugin{% else %} module{% endif %}
+
+**{{ page.short_description }}**
+
+{% if page.type != 'module' -%}
+Use with `ansible_network_os: {{ page.fqcn }}`.
+
+{% endif -%}
+{% if page.description -%}
+## Synopsis
+
+{% for line in page.description -%}
+* {{ line }}
+{% endfor %}
+{% endif -%}
+{% if page.requirements -%}
+## Requirements
+
+{% for line in page.requirements -%}
+* {{ line }}
+{% endfor %}
+{% endif -%}
+{% if page.options -%}
+## Parameters
+
+| Parameter | Type | Comments |
+| --- | --- | --- |
+{% for o in page.options -%}
+| {{ o.name }} {{ '{#' ~ o.anchor ~ '}' }} | {{ o.type }} | {{ o.comments }} |
+{% endfor %}
+{% endif -%}
+{% if page.notes -%}
+## Notes
+
+{% for line in page.notes -%}
+* {{ line }}
+{% endfor %}
+{% endif -%}
+{% if page.examples -%}
+## Examples
+
+```yaml
+{{ page.examples }}
+```
+
+{% endif -%}
+{% if page.returns -%}
+## Return Values
+
+| Key | Type | Comments |
+| --- | --- | --- |
+{% for r in page.returns -%}
+| {{ r.name }} {{ '{#' ~ r.anchor ~ '}' }} | {{ r.type }} | {{ r.comments }} |
+{% endfor %}
+{% for r in page.returns if r.sample -%}
+Sample of `{{ r.name }}`:
+
+```yaml
+{{ r.sample }}
+```
+
+{% endfor %}
+{% endif -%}
+{% if page.author -%}
+## Authors
+
+{% for author in page.author -%}
+* {{ author }}
+{% endfor %}
+{% endif -%}
+{% if page.version_added -%}
+*New in version {{ page.version_added }}*
+{% endif -%}

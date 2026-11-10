@@ -1,0 +1,278 @@
+{
+ "files": [
+  {
+   "chksum_sha256": null,
+   "chksum_type": null,
+   "format": 1,
+   "ftype": "dir",
+   "name": "."
+  },
+  {
+   "chksum_sha256": null,
+   "chksum_type": null,
+   "format": 1,
+   "ftype": "dir",
+   "name": ".ansible"
+  },
+  {
+   "chksum_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "chksum_type": "sha256",
+   "format": 1,
+   "ftype": "file",
+   "name": ".ansible/.lock"
+  },
+  {
+   "chksum_sha256": null,
+   "chksum_type": null,
+   "format": 1,
+   "ftype": "dir",
+   "name": ".ansible/collections"
+  },
+  {
+   "chksum_sha256": null,
+   "chksum_type": null,
+   "format": 1,
+   "ftype": "dir",
+   "name": ".ansible/collections/ansible_collections"
+  },
+  {
+   "chksum_sha256": null,
+   "chksum_type": null,
+   "format": 1,
+   "ftype": "dir",
+   "name": ".ansible/collections/ansible_collections/nokia"
+  },
+  {
+   "chksum_sha256": null,
+   "chksum_type": null,
+   "format": 1,
+   "ftype": "dir",
+   "name": ".ansible/modules"
+  },
+  {
+   "chksum_sha256": null,
+   "chksum_type": null,
+   "format": 1,
+   "ftype": "dir",
+   "name": ".ansible/roles"
+  },
+  {
+   "chksum_sha256": "bc511332a866a37fe1204ee1a8b1d22e6d07229306f169f360088f996fcc6611",
+   "chksum_type": "sha256",
+   "format": 1,
+   "ftype": "file",
+   "name": "LICENSE"
+  },
+  {
+   "chksum_sha256": "ad0f97a75fa99c4a9facb10845c72ff92a13cb6cd5cd0500475a1bc2fb906d19",
+   "chksum_type": "sha256",
+   "format": 1,
+   "ftype": "file",
+   "name": "README.md"
+  },
+  {
+   "chksum_sha256": null,
+   "chksum_type": null,
+   "format": 1,
+   "ftype": "dir",
+   "name": "media"
+  },
+  {
+   "chksum_sha256": "f956117532b0c7ae02a137adf94a7fc6f4c6cd99f7b8ddffa0f7750d76ce5ae7",
+   "chksum_type": "sha256",
+   "format": 1,
+   "ftype": "file",
+   "name": "media/logo.png"
+  },
+  {
+   "chksum_sha256": "3f6a962c73ea1b62a7c652c5aef3a2eab1a1c648ae9d25c1dcd728a5cb53b41b",
+   "chksum_type": "sha256",
+   "format": 1,
+   "ftype": "file",
+   "name": "media/logo.svg"
+  },
+  {
+   "chksum_sha256": null,
+   "chksum_type": null,
+   "format": 1,
+   "ftype": "dir",
+   "name": "meta"
+  },
+  {
+   "chksum_sha256": "b6566307686344f327ee34c0c98cede202355d83445a4e64c09a7e42553c2498",
+   "chksum_type": "sha256",
+   "format": 1,
+   "ftype": "file",
+   "name": "meta/execution-environment.yml"
+  },
+  {
+   "chksum_sha256": "73b18aa0eda5cfa357f8c3ed2e290d55692e699e01c8699b4d76b804e0e1e925",
+   "chksum_type": "sha256",
+   "format": 1,
+   "ftype": "file",
+   "name": "meta/runtime.yml"
+  },
+  {
+   "chksum_sha256": null,
+   "chksum_type": null,
+   "format": 1,
+   "ftype": "dir",
+   "name": "playbooks"
+  },
+  {
+   "chksum_sha256": "0a9e990f689bd8a6cb9d47744910de58525d66adc70b2a4dbd7dcfd7b0f0e264",
+   "chksum_type": "sha256",
+   "format": 1,
+   "ftype": "file",
+   "name": "playbooks/README.md"
+  },
+  {
+   "chksum_sha256": "707a6fb469016bfc35f30c9b4b1d311a48fcb654fdcae49568158745c0eca887",
+   "chksum_type": "sha256",
+   "format": 1,
+   "ftype": "file",
+   "name": "playbooks/device_inventory.yml"
+  },
+  {
+   "chksum_sha256": null,
+   "chksum_type": null,
+   "format": 1,
+   "ftype": "dir",
+   "name": "playbooks/examples"
+  },
+  {
+   "chksum_sha256": null,
+   "chksum_type": null,
+   "format": 1,
+   "ftype": "dir",
+   "name": "playbooks/examples/group_vars"
+  },
+  {
+   "chksum_sha256": "9440221f520171f20911c55a3477e2dafff28e3bcc60d32242aba03241f6024b",
+   "chksum_type": "sha256",
+   "format": 1,
+   "ftype": "file",
+   "name": "playbooks/examples/group_vars/sros_classic.yml"
+  },
+  {
+   "chksum_sha256": "28e434639f5fbc911cea8f2f4cfb74dde2d692c5fea1bde7abaf5a34f924843e",
+   "chksum_type": "sha256",
+   "format": 1,
+   "ftype": "file",
+   "name": "playbooks/examples/group_vars/sros_md.yml"
+  },
+  {
+   "chksum_sha256": "ccb2ca95bcbc0bb8a6802d073c35f1d3df8aeba334188d519bd59c55ffd526be",
+   "chksum_type": "sha256",
+   "format": 1,
+   "ftype": "file",
+   "name": "playbooks/examples/group_vars/sros_md_netconf.yml"
+  },
+  {
+   "chksum_sha256": "40a513ce4b5bc10bd206c886544ee3f07def41e2c6450c6cfde151a482dd8ca7",
+   "chksum_type": "sha256",
+   "format": 1,
+   "ftype": "file",
+   "name": "playbooks/examples/inventory.yml"
+  },
+  {
+   "chksum_sha256": null,
+   "chksum_type": null,
+   "format": 1,
+   "ftype": "dir",
+   "name": "plugins"
+  },
+  {
+   "chksum_sha256": null,
+   "chksum_type": null,
+   "format": 1,
+   "ftype": "dir",
+   "name": "plugins/cliconf"
+  },
+  {
+   "chksum_sha256": "87bad4cd3c7d012bab1216d0d9388e3087a4eab024afcee89d69d90cca805c80",
+   "chksum_type": "sha256",
+   "format": 1,
+   "ftype": "file",
+   "name": "plugins/cliconf/classic.py"
+  },
+  {
+   "chksum_sha256": "37d34715a083d41bc259394e1e3780079d13523761ee9fde8c9b7a4802cce420",
+   "chksum_type": "sha256",
+   "format": 1,
+   "ftype": "file",
+   "name": "plugins/cliconf/light.py"
+  },
+  {
+   "chksum_sha256": "9a477b569dbc12b2177e82f7acf754db3ab30bcec70b66987451490d31debac9",
+   "chksum_type": "sha256",
+   "format": 1,
+   "ftype": "file",
+   "name": "plugins/cliconf/md.py"
+  },
+  {
+   "chksum_sha256": null,
+   "chksum_type": null,
+   "format": 1,
+   "ftype": "dir",
+   "name": "plugins/modules"
+  },
+  {
+   "chksum_sha256": "50c8ba3078a91bbdf9c70ddc390d30e627dbba41af1155ecd0e3979126d59df2",
+   "chksum_type": "sha256",
+   "format": 1,
+   "ftype": "file",
+   "name": "plugins/modules/device_info.py"
+  },
+  {
+   "chksum_sha256": null,
+   "chksum_type": null,
+   "format": 1,
+   "ftype": "dir",
+   "name": "plugins/netconf"
+  },
+  {
+   "chksum_sha256": "4dba8e6a6c402882f37eeab35932c507dc56d78dde364fbbe0ce2555349870d5",
+   "chksum_type": "sha256",
+   "format": 1,
+   "ftype": "file",
+   "name": "plugins/netconf/md.py"
+  },
+  {
+   "chksum_sha256": null,
+   "chksum_type": null,
+   "format": 1,
+   "ftype": "dir",
+   "name": "plugins/terminal"
+  },
+  {
+   "chksum_sha256": "22ec637bddbcaa543eb07a01dc6016148968f90b166bc1c8a69d513294602696",
+   "chksum_type": "sha256",
+   "format": 1,
+   "ftype": "file",
+   "name": "plugins/terminal/classic.py"
+  },
+  {
+   "chksum_sha256": "38585cbc87041511f301a47860e03c3928806887379b61b8f61dd379defa9ffe",
+   "chksum_type": "sha256",
+   "format": 1,
+   "ftype": "file",
+   "name": "plugins/terminal/light.py"
+  },
+  {
+   "chksum_sha256": "6664fd6f6f482a7e5d5645410e6b35075c40ecbbe3938681ea0ac3a7a35c3056",
+   "chksum_type": "sha256",
+   "format": 1,
+   "ftype": "file",
+   "name": "plugins/terminal/md.py"
+  },
+  {
+   "chksum_sha256": "2b510546be4eb92e8a0cf1c8ea2f06849d42c3758c76c13ba85f58f264514871",
+   "chksum_type": "sha256",
+   "format": 1,
+   "ftype": "file",
+   "name": "requirements.txt"
+  }
+ ],
+ "format": 1
+}

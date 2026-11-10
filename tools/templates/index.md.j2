@@ -1,0 +1,27 @@
+# Reference
+
+Generated from the plugin and module docstrings with `make docs`.
+
+Each SR OS network OS is a set of plugins with the same name. Select it with `ansible_network_os`:
+
+| Network OS | terminal | cliconf | netconf |
+| --- | :---: | :---: | :---: |
+{% for mode in ['md', 'classic', 'light'] -%}
+| `nokia.sros.{{ mode }}` |
+{%- for plugin_type in ['terminal', 'cliconf', 'netconf'] -%}
+{%- set match = pages | selectattr('type', 'equalto', plugin_type) | selectattr('fqcn', 'equalto', 'nokia.sros.' ~ mode) | list -%}
+{%- if match %} [yes]({{ match[0].file }}) |{% else %} – |{% endif -%}
+{%- endfor %}
+{% endfor %}
+## Modules
+
+{% for p in pages if p.type == 'module' -%}
+- [`{{ p.fqcn }}`]({{ p.file }}) - {{ p.short_description }}
+{% endfor %}
+{% for plugin_type in plugin_types %}
+## {{ plugin_type | capitalize }} plugins
+
+{% for p in pages if p.type == plugin_type -%}
+- [`{{ p.fqcn }}`]({{ p.file }}) - {{ p.short_description }}
+{% endfor %}
+{% endfor -%}

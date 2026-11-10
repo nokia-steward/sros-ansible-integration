@@ -1,0 +1,5 @@
+---
+ansible_connection: ansible.netcommon.network_cli
+ansible_network_os: nokia.sros.classic
+ansible_user: admin
+ansible_password: "{{ vault_sros_password }}"

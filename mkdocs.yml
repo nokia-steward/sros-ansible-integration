@@ -1,0 +1,96 @@
+site_name: Nokia SR OS Ansible Collection
+site_description: Ansible CLI and NETCONF plugins for Nokia SR OS
+site_url: https://nokia-steward.github.io/sros-ansible-integration/
+edit_uri: edit/master/docs/
+site_author: Sven Wisotzky
+repo_name: nokia-steward/sros-ansible-integration
+repo_url: https://github.com/nokia-steward/sros-ansible-integration
+copyright: Copyright &copy; 2026 Nokia
+theme:
+  name: material
+  palette:
+  - media: '(prefers-color-scheme: light)'
+    scheme: default
+    toggle:
+      icon: material/toggle-switch-off-outline
+      name: Switch to dark mode
+  - media: '(prefers-color-scheme: dark)'
+    scheme: slate
+    toggle:
+      icon: material/toggle-switch
+      name: Switch to light mode
+  logo: media/logo.png
+  include_search_page: false
+  search_index_only: true
+  language: en
+  features:
+  - navigation.instant
+  - navigation.tracking
+  - navigation.tabs
+  - navigation.top
+  - search.suggest
+  - search.highlight
+  - content.code.copy
+  - content.code.select
+  - navigation.sections
+  - content.code.annotate
+  - content.action.edit
+  - toc.follow
+  - content.tooltips
+  - navigation.indexes
+  font:
+    text: Roboto
+    code: Fira Code
+nav:
+- Home: index.md
+- Getting Started:
+  - Start Here: getting-started/start-here.md
+  - Installation: getting-started/installation.md
+  - Quick Start: getting-started/quick-start.md
+  - Inventory Patterns: getting-started/inventory-patterns.md
+- Guides:
+  - Overview: guides/index.md
+  - User Guide: guides/user-guide.md
+  - Security Guide: guides/security-guide.md
+  - Developer Guide: guides/developer-guide.md
+  - Community Guide: guides/community-guide.md
+- Examples: examples.md
+- Support: support.md
+- Reference:
+  - Overview: reference/index.md
+  - Modules:
+    - device_info: reference/nokia.sros.device_info.md
+  - Cliconf Plugins:
+    - classic: reference/nokia.sros.classic_cliconf.md
+    - light: reference/nokia.sros.light_cliconf.md
+    - md: reference/nokia.sros.md_cliconf.md
+  - Netconf Plugins:
+    - md: reference/nokia.sros.md_netconf.md
+  - Terminal Plugins:
+    - classic: reference/nokia.sros.classic_terminal.md
+    - light: reference/nokia.sros.light_terminal.md
+    - md: reference/nokia.sros.md_terminal.md
+plugins:
+- search
+markdown_extensions:
+- attr_list
+- toc:
+    permalink: true
+- tables
+- admonition
+- pymdownx.details
+- pymdownx.superfences
+- pymdownx.highlight:
+    use_pygments: true
+- pymdownx.tabbed:
+    alternate_style: true
+- pymdownx.blocks.tab:
+    alternate_style: true
+- pymdownx.blocks.admonition
+- pymdownx.tasklist:
+    custom_checkbox: true
+extra:
+  version: 2.2.0
+  social:
+  - icon: fontawesome/brands/github
+    link: https://github.com/nokia-steward/sros-ansible-integration

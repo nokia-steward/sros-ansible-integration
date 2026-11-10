@@ -9,3 +9,7 @@ tests/clab-*
 license.*
 .DS_Store
 .build/
+site/
+tests/output/
+importer_result.json
+bandit-report.json

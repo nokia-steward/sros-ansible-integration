@@ -1,0 +1,22 @@
+[flake8]
+# Flake8 configuration for Nokia SR OS Ansible Collection
+max-line-length = 120
+extend-ignore = E203, W503
+exclude =
+    .git,
+    __pycache__,
+    .venv,
+    .build,
+    site/
+select =
+    E,
+    W,
+    F,
+    C901,
+    B
+per-file-ignores =
+    __init__.py:F401
+    plugins/*/*.py:E402
+    plugins/modules/*.py:E402
+show-source = True
+statistics = True

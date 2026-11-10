@@ -4,15 +4,16 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 from __future__ import (absolute_import, division, print_function)
-__metaclass__ = type
+__metaclass__ = type  # pylint: disable=invalid-name
 
 DOCUMENTATION = """
 ---
-author: nokia
-terminal: nokia.sros.light
+author: Sven Wisotzky (@wisotzky)
+name: light
 short_description: Classic-CLI terminal support for Nokia SR OS devices
 """
 
+# pylint: disable=wrong-import-position
 import re
 
 from ansible.plugins.terminal import TerminalBase
@@ -30,9 +31,6 @@ class TerminalModule(TerminalBase):
         re.compile(br"[\r\n]Error: .*[\r\n]+"),
         re.compile(br"[\r\n](MINOR|MAJOR|CRITICAL): .*[\r\n]+")
     ]
-
-    def __init__(self, *args, **kwargs):
-        super(TerminalModule, self).__init__(*args, **kwargs)
 
     def warning(self, msg):
         self._connection.queue_message('warning', msg)
@@ -52,12 +50,14 @@ class TerminalModule(TerminalBase):
                 # node is running classic-cli
                 self._exec_cli_command(b'environment no more')
 
-        except AnsibleConnectionFailure:
-            raise AnsibleConnectionFailure('unable to set terminal parameters')
+        except AnsibleConnectionFailure as exc:
+            raise AnsibleConnectionFailure('unable to set terminal parameters') from exc
 
         reply = self._exec_cli_command(b'show system information')
         data = to_text(reply, errors='surrogate_or_strict').strip()
         match = re.search(r'Configuration Mode Oper:\s+(.+)', data)
         if match and match.group(1) != 'classic':
             host = self._connection.get_option('host')
-            self.warning("%s is not running in classic mode. Use: `ansible_network_os: nokia.sros.md`" % host)
+            self.warning(
+                f"{host} is not running in classic mode. Use: `ansible_network_os: nokia.sros.md`"
+            )

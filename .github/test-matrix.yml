@@ -1,16 +1,26 @@
 # Test Matrix Configuration
 # Single source of truth for all CI/CD test configurations
-# This file defines which version combinations are tested
+#
+# Controller versions follow the support policy shared with nokia.openconfig
+# and nokia.nsp: the ansible-core releases that still receive security fixes,
+# each paired with a controller Python that it supports.
 
 test_matrix:
-  python_versions:
-    - '3.13'
-    - '3.14'
-  
+  # ansible-core and Python pairs, used for ansible-test sanity and integration
+  controllers:
+    - ansible: '2.20'
+      python: '3.12'
+    - ansible: '2.21'
+      python: '3.14'
+    - ansible: '2.22'
+      python: '3.13'
+
+  # Recommended controller, runs the integration tests against every SR OS version
+  recommended:
+    ansible: '2.22'
+    python: '3.13'
+
+  # The last entry is the newest release, used for all controller pairs
   sros_versions:
     - '25.7.R2'
     - '25.10.R1'
-  
-  ansible_versions:
-    - '2.17'
-    - '2.18'

@@ -1,0 +1,85 @@
+# Copyright 2026 Nokia
+# Licensed under the BSD 3-Clause License.
+# SPDX-License-Identifier: BSD-3-Clause
+
+---
+# Collect device information from every SR OS host using nokia.sros.device_info.
+# Works over CLI (nokia.sros.md, classic, light) and NETCONF (nokia.sros.md).
+#
+# Reports on the controller:
+#   <report_dir>/device_inventory.csv
+#   <report_dir>/device_inventory.json
+#
+# Variables:
+#   report_dir  default ./reports (relative to the directory you run ansible-playbook from)
+#   target      host pattern (default all)
+#
+#   ansible-playbook -i inventory.yml nokia.sros.device_inventory
+- name: Device inventory
+  hosts: "{{ target | default('all') }}"
+  gather_facts: false
+  strategy: linear
+
+  vars:
+    report_dir: "{{ lookup('ansible.builtin.env', 'PWD') }}/reports"
+
+  tasks:
+    - name: Read device information
+      nokia.sros.device_info:
+      register: device_info
+
+    - name: Record inventory row
+      ansible.builtin.set_fact:
+        device_record:
+          host: "{{ inventory_hostname }}"
+          hostname: "{{ device_info.output.network_os_hostname | default('') }}"
+          network_os: "{{ device_info.output.network_os | default('') }}"
+          config_mode: "{{ device_info.output.sros_config_mode | default('') }}"
+          model: "{{ device_info.output.network_os_model | default('') }}"
+          platform: "{{ device_info.output.network_os_platform | default('') }}"
+          software_version: "{{ device_info.output.network_os_version | default('') }}"
+
+    - name: Show the record
+      ansible.builtin.debug:
+        msg: >-
+          {{ device_record.hostname or inventory_hostname }}:
+          {{ device_record.model }} {{ device_record.software_version }},
+          {{ device_record.network_os }} ({{ device_record.config_mode }})
+
+    - name: Write the reports
+      delegate_to: localhost
+      run_once: true
+      vars:
+        ansible_connection: local
+        ansible_python_interpreter: "{{ ansible_playbook_python }}"
+        rows: "{{ ansible_play_hosts | map('extract', hostvars, 'device_record') | list }}"
+        columns:
+          - host
+          - hostname
+          - network_os
+          - config_mode
+          - model
+          - platform
+          - software_version
+      block:
+        - name: Create the report directory
+          ansible.builtin.file:
+            path: "{{ report_dir }}"
+            state: directory
+            mode: "0750"
+
+        - name: Write the CSV report
+          ansible.builtin.copy:
+            dest: "{{ report_dir }}/device_inventory.csv"
+            mode: "0640"
+            content: |
+              {{ columns | join(',') }}
+              {% for row in rows %}
+              {{ columns | map('extract', row) | map('string') | map('regex_replace', ',', ';') | join(',') }}
+              {% endfor %}
+
+        - name: Write the JSON report
+          ansible.builtin.copy:
+            dest: "{{ report_dir }}/device_inventory.json"
+            mode: "0640"
+            content: "{{ rows | to_nice_json }}\n"

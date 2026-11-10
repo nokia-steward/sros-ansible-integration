@@ -61,7 +61,8 @@ log() {
 
   local level="$1"; shift
   local msg="$*"
-  local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+  local timestamp
+  timestamp=$(date '+%Y-%m-%d %H:%M:%S')
   
   case "$level" in
     BOLD) 
@@ -132,32 +133,32 @@ EOF
 # --- Containerlab Lifecycle --------------------------------------------------
 
 start_lab() {
-  local topo_args="-t $TOPOLOGY_FILE --reconfigure"
+  local topo_args=(-t "$TOPOLOGY_FILE" --reconfigure)
   
   # If LAB_NAME is set, override the lab name
   if [[ -n "$LAB_NAME" ]]; then
     log INFO "Deploying containerlab with custom lab name: $LAB_NAME"
-    topo_args="$topo_args --name $LAB_NAME"
+    topo_args+=(--name "$LAB_NAME")
   else
     log INFO "Deploying containerlab topology: $TOPOLOGY_FILE"
   fi
   
-  sudo containerlab deploy $topo_args
+  sudo --preserve-env=SROS_VERSION containerlab deploy "${topo_args[@]}"
   log OK "Containerlab deployed successfully"
 }
 
 stop_lab() {
-  local topo_args="-t $TOPOLOGY_FILE"
+  local topo_args=(-t "$TOPOLOGY_FILE")
   
   # If LAB_NAME is set, use it for destroy
   if [[ -n "$LAB_NAME" ]]; then
     log INFO "Destroying containerlab: $LAB_NAME"
-    topo_args="$topo_args --name $LAB_NAME"
+    topo_args+=(--name "$LAB_NAME")
   else
     log INFO "Destroying containerlab topology"
   fi
   
-  sudo containerlab destroy $topo_args || true
+  sudo --preserve-env=SROS_VERSION containerlab destroy "${topo_args[@]}" || true
   log OK "Containerlab destroyed"
 }
 
@@ -165,13 +166,18 @@ stop_lab() {
 
 run_playbook() {
   local pb="${1:-}"
-  local start_time=$(date +%s)
+  local start_time
+  start_time=$(date +%s)
   local result=0
+
+  # Playbook entries may carry extra ansible-playbook options, e.g. "--diff"
+  local pb_args
+  read -ra pb_args <<< "$pb"
 
   # Create a temporary log file for this playbook execution
   local pb_log_file=""
   if [[ -n "$LOG_FILE" ]]; then
-    pb_log_file="${LOG_FILE%.log}-$(basename ${pb%% *}).log"
+    pb_log_file="${LOG_FILE%.log}-$(basename "${pb_args[0]}").log"
   fi
 
   # Execute quietly or verbosely
@@ -179,19 +185,19 @@ run_playbook() {
   if $QUIET; then
     log INFO "Running: ansible-playbook $pb"
     if [[ -n "$pb_log_file" ]]; then
-      ansible-playbook $pb > "$pb_log_file" 2>&1
+      ansible-playbook "${pb_args[@]}" > "$pb_log_file" 2>&1
       result=$?
     else
-      ansible-playbook $pb >/dev/null 2>&1
+      ansible-playbook "${pb_args[@]}" >/dev/null 2>&1
       result=$?
     fi
   else
     log BOLD "Running: ansible-playbook $pb"
     if [[ -n "$pb_log_file" ]]; then
-      ANSIBLE_FORCE_COLOR=true ansible-playbook $pb 2>&1 | tee "$pb_log_file" | sed 's/^/    /'
+      ANSIBLE_FORCE_COLOR=true ansible-playbook "${pb_args[@]}" 2>&1 | tee "$pb_log_file" | sed 's/^/    /'
       result=${PIPESTATUS[0]}
     else
-      ANSIBLE_FORCE_COLOR=true ansible-playbook $pb 2>&1 | sed 's/^/    /'
+      ANSIBLE_FORCE_COLOR=true ansible-playbook "${pb_args[@]}" 2>&1 | sed 's/^/    /'
       result=${PIPESTATUS[0]}
     fi
   fi
@@ -201,7 +207,7 @@ run_playbook() {
 
   if [[ ${result} -eq 120 ]]; then
     log FAIL "Execution interrupted by user (Ctrl-C)"
-    exit $result
+    exit "$result"
   elif [[ ${result} -ne 0 ]]; then
     TESTS_FAILED=$((TESTS_FAILED + 1))
     FAILED_TESTS+=("$pb")
