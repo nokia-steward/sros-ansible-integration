@@ -19,6 +19,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 - Ansible Galaxy version badge and quick-start example in the README
 
 ### Fixed
+- Import `to_text` from `ansible.module_utils.common.text.converters` instead of deprecated `ansible.module_utils._text` (ansible-core 2.24), as in [PR #14](https://github.com/nokia-steward/sros-ansible-integration/pull/14)
 - CI integration tests now use the SR OS version of the test matrix (always ran 25.7.R2)
 - Plugin documentation, imports and `device_info` check mode, as required by `ansible-test sanity`
 

@@ -28,7 +28,7 @@ options:
 # pylint: disable=wrong-import-position
 import json
 
-from ansible.module_utils._text import to_text
+from ansible.module_utils.common.text.converters import to_text
 from ansible.plugins.netconf import NetconfBase
 from ansible.plugins.netconf import ensure_ncclient
 
