@@ -41,3 +41,7 @@ The Makefile uses `tests/inventory.example.yml` when `tests/inventory.yml` is mi
 ## CI
 
 `.github/workflows/ci.yml` runs the `sanity` and `integration-sros` suites on the versions in `.github/test-matrix.yml`. `run.sh` is the shared reference script of the nokia-steward test pattern; do not edit it here.
+
+## Known upstream warnings
+
+Integration playbooks that use `ansible.netcommon.cli_config` and report a change may show one `[WARNING]` line per character on the idempotency hint (for example on task `do some config`). That comes from [ansible.netcommon#828](https://github.com/ansible-collections/ansible.netcommon/pull/828) (`cli_config` puts the hint in `warnings` as a string instead of a list). It is not a `nokia.sros` plugin bug; upgrade `ansible.netcommon` once that fix is released.
