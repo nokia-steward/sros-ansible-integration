@@ -1,10 +1,9 @@
 # Test matrix: the single source of truth for GitHub Actions (.github/workflows/ci.yml) and
 # nokia-steward-validator. Format: nokia-steward pattern version 1.
 #
-# Controller versions follow the support policy shared with nokia.openconfig and nokia.nsp:
-# the ansible-core releases that still receive security fixes, each paired with a controller
-# Python that it supports. Integration runs every controller against the newest SR OS release,
-# and the recommended controller (ansible-core 2.22, Python 3.13) against every SR OS release.
+# sanity: ansible-test sanity — one row per ansible-core and Python pair in cases.
+# integration-sros: SR-SIM playbooks on x.10 SR OS releases and the latest SR OS release;
+# each case pairs one SR OS tag with one controller row below.
 version: 1
 
 environment:

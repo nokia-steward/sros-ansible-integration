@@ -4,7 +4,7 @@
     **Python:** `3.12+` (3.13 recommended), **Ansible Core:** `2.20+` (2.22 recommended), **SR OS:** SSH enabled; NETCONF enabled for `nokia.sros.md` NETCONF connections
 
     Ansible controllers run on Linux and macOS. On Windows, use WSL.
-    Older Ansible and Python releases no longer receive security fixes, see [Supported Ansible and Python versions](../support.md#supported-ansible-and-python-versions).
+    Versions exercised in CI, see [Validated in CI](../support.md#validated-in-ci).
 
 ## External dependencies
 

@@ -12,7 +12,7 @@ source .venv/bin/activate
 make install-dev
 ```
 
-`make install-dev` installs `requirements-dev.txt` (which includes `requirements.txt`) and the collections `ansible.netcommon`, `ansible.utils` and `community.general`. Use a controller from the [supported versions](../support.md#supported-ansible-and-python-versions).
+`make install-dev` installs `requirements-dev.txt` (which includes `requirements.txt`) and the collections `ansible.netcommon`, `ansible.utils` and `community.general`. Use a controller from [Validated in CI](../support.md#validated-in-ci).
 
 ## Repository layout
 
@@ -49,16 +49,11 @@ cd tests
 ./run.sh destroy
 ```
 
-`SROS_VERSION=25.10.R1 ./run.sh deploy` selects the SR OS image tag. `./run.sh help` lists all options. Results go to `tests/output/junit/` (one testcase per playbook) and the playbook logs to `tests/output/logs/`.
+Optional `SROS_VERSION` overrides the image tag in `tests/topo.clab.yml`. `./run.sh help` lists all options. Results go to `tests/output/junit/` (one testcase per playbook) and the playbook logs to `tests/output/logs/`.
 
 ## Continuous integration
 
-`.github/test-matrix.yml` lists the suites and the exact version combinations. `.github/workflows/ci.yml` runs every case with `make test-setup` and `make test-<suite>`:
-
-1. `sanity`: `ansible-test sanity` for each supported ansible-core and Python pair, and ansible-core devel as an experimental case.
-2. `integration-sros`: the containerlab tests for each pair against the newest SR OS release, and for the recommended controller against every SR OS release.
-
-The SR OS cases need a license. Without an `SRSIM_LICENSE` secret, GitHub lists them as not run, and a maintainer runs them with nokia-steward-validator, which posts the results to the pull request. `ci.yml`, `.github/scripts/` and `tests/run.sh` are shared files of the nokia-steward test pattern; change the matrix, not these files.
+`.github/test-matrix.yml` and [.github/workflows/README.md](https://github.com/nokia-steward/sros-ansible-integration/blob/master/.github/workflows/README.md). Shared pattern files (`ci.yml`, `.github/scripts/`, `tests/run.sh`) are not edited in this repo — change the matrix instead.
 
 `.github/workflows/release.yml` builds the collection for a GitHub release, validates it with `galaxy-importer`, smoke-tests the artifact with every controller pair (`tools/smoke_test.sh`) and publishes it to Ansible Galaxy.
 

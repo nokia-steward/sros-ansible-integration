@@ -4,7 +4,7 @@ version: 2.2.0
 readme: README.md
 authors:
 - Sven Wisotzky <sven.wisotzky@nokia.com>
-description: Ansible CLI and NETCONF plugins for Nokia SR OS, with workflow playbooks. Validated on SR OS 25.7 and 25.10.
+description: Ansible CLI and NETCONF plugins for Nokia SR OS, with workflow playbooks.
 license:
   - BSD-3-Clause
 tags:

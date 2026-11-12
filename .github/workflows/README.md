@@ -15,17 +15,9 @@ Change the test matrix, not these files.
 
 ## Test matrix
 
-`../test-matrix.yml` is the single source of truth for what is tested:
-
-- `sanity`: `ansible-test sanity` for every supported controller (ansible-core 2.20 with
-  Python 3.12, 2.21 with 3.14, 2.22 with 3.13), plus ansible-core devel as an experimental case
-- `integration-sros`: the containerlab playbooks of `tests/playbooks.yml` against SR OS (SR-SIM),
-  every controller against 25.10.R1 and the recommended controller (2.22, Python 3.13) against
-  25.7.R2
-
-Each case runs `make test-setup` and `make test-<suite>`. The versions arrive as
-`ANSIBLE_VERSION` and `SROS_VERSION`. To add a version, add a row under `cases`. `make test`
-runs the suites that need no lab (`sanity`) on a workstation.
+`../test-matrix.yml` lists suites, cases and versions (see the file header). Each case runs
+`make test-setup` and `make test-<suite>` with `ANSIBLE_VERSION` and `SROS_VERSION` where
+applicable. To add a version, add a row under `cases`. `make test` runs lab-free suites locally.
 
 ## Where the SR OS cases run
 

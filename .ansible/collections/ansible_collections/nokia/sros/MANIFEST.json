@@ -18,7 +18,7 @@
    "cliconf",
    "terminal"
   ],
-  "description": "Ansible CLI and NETCONF plugins for Nokia SR OS, with workflow playbooks. Validated on SR OS 25.7 and 25.10.",
+  "description": "Ansible CLI and NETCONF plugins for Nokia SR OS, with workflow playbooks.",
   "license": [
    "BSD-3-Clause"
   ],

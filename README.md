@@ -33,14 +33,7 @@ We welcome contributions from the community — including tutorials, real-world 
 * **Python libraries:** [ansible-pylibssh](https://pypi.org/project/ansible-pylibssh) ≥ 1.3.0, [ncclient](https://pypi.org/project/ncclient) ≥ 0.6.19, [xmltodict](https://pypi.org/project/xmltodict) ≥ 0.13.0
 * **Collections:** [`ansible.netcommon`](https://galaxy.ansible.com/ui/repo/published/ansible/netcommon) ≥ 5.2.0, [`ansible.utils`](https://galaxy.ansible.com/ui/repo/published/ansible/utils) ≥ 3.0.0 (installed with the collection)
 
-Older Ansible and Python releases no longer receive security fixes, see [Supported Ansible and Python versions](https://nokia-steward.github.io/sros-ansible-integration/support/#supported-ansible-and-python-versions).
-
----
-
-## Supported SR OS Versions
-
-Tested with **SR OS 25.7** and **25.10**.
-Other versions may work but have not been explicitly validated.
+Versions validated in CI (controller and SR OS): [Support](https://nokia-steward.github.io/sros-ansible-integration/support/#validated-in-ci).
 
 ---
 

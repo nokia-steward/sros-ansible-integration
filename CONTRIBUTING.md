@@ -23,7 +23,7 @@ Before contributing, ensure your environment includes:
 * **Access** to SR OS container images and a valid license file
 * A Linux, macOS, or BSD-like system with common GNU tools (`bash`, `curl`, `make`, etc.)
 
-See [Supported Ansible and Python versions](https://nokia-steward.github.io/sros-ansible-integration/support/#supported-ansible-and-python-versions) for the versions tested in CI.
+See [Validated in CI](https://nokia-steward.github.io/sros-ansible-integration/support/#validated-in-ci).
 
 ---
 

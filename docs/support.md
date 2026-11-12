@@ -11,7 +11,7 @@ The collection is a community project. There is no commercial support and no ser
 - [GitHub Issues](https://github.com/nokia-steward/sros-ansible-integration/issues) — bugs and questions
 - [Ansible Galaxy](https://galaxy.ansible.com/ui/repo/published/nokia/sros/) — released versions
 
-## Supported Ansible and Python versions
+## Validated in CI
 
 The Nokia Ansible collections `nokia.openconfig`, `nokia.nsp` and `nokia.sros` share one support policy for the Ansible controller. The minimum is the oldest `ansible-core` release that still receives security fixes, so that a supported installation also receives fixes for known vulnerabilities (CVEs).
 
@@ -19,7 +19,8 @@ The Nokia Ansible collections `nokia.openconfig`, `nokia.nsp` and `nokia.sros` s
 | --- | --- | --- |
 | Minimum | 2.20 | 3.12 |
 | Recommended | 2.22 | 3.13 |
-| Tested in CI | 2.20, 2.21, 2.22 | 3.12, 3.13, 3.14 |
+
+[`.github/test-matrix.yml`](https://github.com/nokia-steward/sros-ansible-integration/blob/master/.github/test-matrix.yml) lists every CI case: ansible-core and Python **pairs** under `sanity`, and SR-SIM integration on **x.10** SR OS releases plus the **latest** release under `integration-sros` (see the file header).
 
 `ansible-core` 2.20 and newer run on Python 3.12 to 3.14, see the [ansible-core support matrix](https://docs.ansible.com/projects/ansible/latest/reference_appendices/release_and_maintenance.html#ansible-core-support-matrix). The modules of this collection run on the controller, so the routers need no Python.
 
@@ -27,9 +28,7 @@ Older releases, `ansible-core` 2.19 and earlier, no longer receive security fixe
 
 The minimum follows the `ansible-core` release cycle: it is raised when an `ansible-core` release reaches end of life, in May and November.
 
-## Supported SR OS versions
-
-The integration tests run against SR OS 25.7 and 25.10 (SR-SIM), see `.github/test-matrix.yml`. Other releases may work but have not been explicitly validated.
+Other SR OS releases may work but are not validated in CI.
 
 ## Before production
 
