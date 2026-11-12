@@ -1,0 +1,20 @@
+# PyLint for development tooling (strict).
+
+[MAIN]
+py-version = 3.12
+
+[FORMAT]
+max-line-length = 120
+
+[BASIC]
+good-names = i,j,k,ex,Run,_,id,fqcn,macro
+
+[SIMILARITIES]
+min-similarity-lines = 20
+
+[MESSAGES CONTROL]
+disable =
+    too-many-locals,
+    too-many-branches,
+    missing-function-docstring,
+    consider-using-f-string,

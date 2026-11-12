@@ -4,32 +4,28 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 from __future__ import (absolute_import, division, print_function)
-__metaclass__ = type
+__metaclass__ = type  # pylint: disable=invalid-name
 
 DOCUMENTATION = """
 ---
-author: Nokia
-cliconf: nokia.sros.classic
+author: Sven Wisotzky (@wisotzky)
+name: classic
 short_description: Cliconf plugin to configure and run CLI commands on Nokia SR OS devices (classic mode)
 description:
   - This plugin provides low level abstraction APIs for sending CLI commands and
     receiving responses from Nokia SR OS network devices.
 """
 
+# pylint: disable=wrong-import-position
 import re
 import json
+from collections.abc import Mapping
 
 from ansible.errors import AnsibleConnectionFailure
-from ansible.module_utils.common._collections_compat import Mapping
-from ansible.module_utils._text import to_text
+from ansible.module_utils.common.text.converters import to_text
 from ansible.plugins.cliconf import CliconfBase
 
-try:
-    from ansible_collections.ansible.netcommon.plugins.module_utils.network.common.utils import to_list
-
-except ImportError:
-    # if netcommon is not installed, fallback for Ansible 2.8 and 2.9
-    from ansible.module_utils.network.common.utils import to_list
+from ansible_collections.ansible.netcommon.plugins.module_utils.network.common.utils import to_list
 
 
 class Cliconf(CliconfBase):
@@ -70,7 +66,7 @@ class Cliconf(CliconfBase):
         }
 
     def get_device_info(self):
-        device_info = dict()
+        device_info = {}
         device_info['network_os'] = 'nokia.sros.classic'
         device_info['network_os_platform'] = 'Nokia 7x50'
 
@@ -98,7 +94,7 @@ class Cliconf(CliconfBase):
         return device_info
 
     def get_capabilities(self):
-        capabilities = super(Cliconf, self).get_capabilities()
+        capabilities = super().get_capabilities()
         capabilities['device_operations'] = self.get_device_operations()
         capabilities['rpc'] = self.get_sros_rpc()
         capabilities['device_info'] = self.get_device_info()
@@ -115,24 +111,25 @@ class Cliconf(CliconfBase):
         match = re.search(r'Configuration Mode Oper:\s+(.+)', data)
         return not match or match.group(1) == 'classic'
 
+    # pylint: disable=arguments-renamed,redefined-builtin
     def get_config(self, source='running', format='text', flags=None):
         if source != 'running':
-            raise ValueError("fetching configuration from %s is not supported" % source)
+            raise ValueError(f"fetching configuration from {source} is not supported")
 
         if format != 'text':
-            raise ValueError("'format' value %s is invalid. Only format supported is 'text'" % format)
+            raise ValueError(f"'format' value {format} is invalid. Only format supported is 'text'")
 
         if not self.is_classic_mode():
             raise ValueError("Nokia SROS node is not running in classic mode. Use ansible_network_os=nokia.sros.md")
 
-        cmd = 'admin display-config %s' % ' '.join(flags)
+        cmd = f"admin display-config {' '.join(flags)}"
         self.send_command('exit all')
         response = self.send_command(cmd.strip())
         pos1 = response.find('exit all')
         pos2 = response.rfind('exit all') + 8
         return response[pos1:pos2]
 
-    def edit_config(self, candidate=None, commit=True, replace=None, comment=None):
+    def edit_config(self, candidate=None, commit=True, replace=None, comment=None):  # pylint: disable=arguments-differ
         operations = self.get_device_operations()
         self.check_edit_config_capability(operations, candidate, commit, replace, comment)
 
@@ -144,7 +141,8 @@ class Cliconf(CliconfBase):
 
         try:
             self.send_command('exit all')
-            self.send_command('admin rollback save')  # Save rollback to compare if changes occur. This rollback will be removed upon module completion.
+            # Save rollback to compare if changes occur; removed on module completion.
+            self.send_command('admin rollback save')
             for cmd in to_list(candidate):
                 if isinstance(cmd, Mapping):
                     requests.append(cmd['command'])
@@ -157,34 +155,33 @@ class Cliconf(CliconfBase):
             self.send_command('exit all')
             self.send_command('admin rollback revert latest-rb')
             self.send_command('admin rollback delete latest-rb')
-            raise exc
+            raise exc from exc
 
         self.send_command('exit all')
         rawdiffs = self.send_command('admin rollback compare')
         match = re.search(r'\r?\n-+\r?\n(.*)\r?\n-+\r?\n', rawdiffs, re.DOTALL)
-        if match:
-            if commit:
-                pass
-            else:
-                # Special hack! We load the config to running and rollback
-                # to just figure out the delta. this might be risky in
-                # check-mode, because it causes the changes contained to
-                # become temporary active.
-
-                self.send_command('admin rollback revert latest-rb')
-            # Remove latest rollback to leave rollback history intact.
-            self.send_command('admin rollback delete latest-rb')
-            return {'request': requests, 'response': responses, 'diff': match.group(1)}
-        else:
-            # Remove latest rollback to leave rollback history intact.
+        if not match:
             self.send_command('admin rollback delete latest-rb')
             return {'request': requests, 'response': responses}
+        if not commit:
+            # Apply briefly to obtain diff, then revert (check-mode side effects possible).
+            self.send_command('admin rollback revert latest-rb')
+        self.send_command('admin rollback delete latest-rb')
+        return {'request': requests, 'response': responses, 'diff': match.group(1)}
 
+    # pylint: disable=arguments-renamed,too-many-arguments,too-many-positional-arguments
     def get(self, command, prompt=None, answer=None, sendonly=False, output=None, newline=True, check_all=False):
         if output:
-            raise ValueError("'output' value %s is not supported for get" % output)
+            raise ValueError(f"'output' value {output} is not supported for get")
 
-        return self.send_command(command=command, prompt=prompt, answer=answer, sendonly=sendonly, newline=newline, check_all=check_all)
+        return self.send_command(
+            command=command,
+            prompt=prompt,
+            answer=answer,
+            sendonly=sendonly,
+            newline=newline,
+            check_all=check_all,
+        )
 
     def rollback(self, rollback_id, commit=True):
         if not self.is_classic_mode():
@@ -195,11 +192,11 @@ class Cliconf(CliconfBase):
         if str(rollback_id) == '0':
             rollback_id = 'latest-rb'
 
-        rawdiffs = self.send_command('admin rollback compare {0} to active-cfg'.format(rollback_id))
+        rawdiffs = self.send_command(f'admin rollback compare {rollback_id} to active-cfg')
         match = re.search(r'\r?\n-+\r?\n(.*)\r?\n-+\r?\n', rawdiffs, re.DOTALL)
 
         if match:
             if commit:
-                self.send_command('admin rollback revert {0} now'.format(rollback_id))
+                self.send_command(f'admin rollback revert {rollback_id} now')
             return {'diff': match.group(1).strip()}
         return {}

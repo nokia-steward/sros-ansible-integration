@@ -1,0 +1,19 @@
+---
+# Example inventory for nokia.sros playbooks. Platform settings are in
+# group_vars/ next to this file; copy both and adjust addresses and credentials.
+#
+#   ansible-playbook -i inventory.yml nokia.sros.device_inventory
+sros:
+  children:
+    sros_md:
+      hosts:
+        pe1:
+          ansible_host: 192.0.2.10
+    sros_classic:
+      hosts:
+        pe2:
+          ansible_host: 192.0.2.11
+    sros_md_netconf:
+      hosts:
+        pe3:
+          ansible_host: 192.0.2.12

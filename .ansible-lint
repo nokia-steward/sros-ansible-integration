@@ -1,0 +1,7 @@
+---
+profile: production
+exclude_paths:
+  - .venv/
+  - .build/
+  - site/
+  - tests/

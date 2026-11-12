@@ -1,0 +1,32 @@
+---
+# Example inventory for syntax checks and local playbook runs without containerlab.
+# Copy to inventory.yml and set addresses and credentials.
+#
+#   cp tests/inventory.example.yml tests/inventory.yml
+#   ansible-playbook -i tests/inventory.yml nokia.sros.device_inventory
+all:
+  vars:
+    ansible_user: admin
+    ansible_password: changeme
+  children:
+    sros_md:
+      vars:
+        ansible_connection: ansible.netcommon.network_cli
+        ansible_network_os: nokia.sros.md
+      hosts:
+        pe1:
+          ansible_host: 192.0.2.10
+    sros_classic:
+      vars:
+        ansible_connection: ansible.netcommon.network_cli
+        ansible_network_os: nokia.sros.classic
+      hosts:
+        pe2:
+          ansible_host: 192.0.2.11
+    sros_md_netconf:
+      vars:
+        ansible_connection: ansible.netcommon.netconf
+        ansible_network_os: nokia.sros.md
+      hosts:
+        pe3:
+          ansible_host: 192.0.2.12

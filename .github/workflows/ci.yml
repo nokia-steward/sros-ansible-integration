@@ -1,121 +1,148 @@
+# version: 1
+# Copied from nokia-steward-validator pattern/. Do not edit: the linter checks this file is unchanged.
+# What runs is defined in .github/test-matrix.yml; how a suite runs is defined by its Makefile target.
 ---
-name: CICD
+name: CI
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
   push:
-    branches: [main]
+    branches: [main, master]
+  schedule:
+    # Weekly, so experimental cases (upcoming releases) run without a pull request.
+    - cron: '17 5 * * 1'
   workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  # Generate test matrix from test-definitions.yml
-  generate-matrix:
+  plan:
+    name: plan
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      cases: ${{ steps.plan.outputs.cases }}
+      count: ${{ steps.plan.outputs.count }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
-      
-      - name: Install PyYAML
-        run: pip install pyyaml
-      
-      - name: Generate Matrix from test-definitions.yml
-        id: set-matrix
-        run: |
-          python3 << 'EOF' >> $GITHUB_OUTPUT
-          import yaml
-          import json
-          
-          with open('.github/test-matrix.yml', 'r') as f:
-              config = yaml.safe_load(f)
-          
-          test_matrix = config['test_matrix']
-          
-          # Generate ALL combinations (cartesian product)
-          matrix = {
-              "include": []
-          }
-          
-          for python_ver in test_matrix['python_versions']:
-              for sros_ver in test_matrix['sros_versions']:
-                  for ansible_ver in test_matrix['ansible_versions']:
-                      matrix["include"].append({
-                          "python-version": python_ver,
-                          "sros-version": sros_ver,
-                          "ansible-version": ansible_ver
-                      })
-          
-          print(f"matrix={json.dumps(matrix)}")
-          EOF
-
-  sanity:
-    needs: generate-matrix
-    runs-on: ubuntu-latest
-    env:
-      SRSIM_LICENSE: ${{ secrets.SRSIM_LICENSE }}
-    strategy:
-      fail-fast: false
-      matrix: ${{ fromJson(needs.generate-matrix.outputs.matrix) }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
-          python-version: ${{ matrix.python-version }}
-      
-      - name: Upgrade pip
-        run: python -m pip install --upgrade pip
+          python-version: '3.13'
 
-      - name: Install System Dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libssh-dev
+      - name: Install PyYAML
+        run: python -m pip install --quiet pyyaml
 
-      - name: Install Python Requirements
-        run: pip install -r requirements.txt
+      # Cases needing a capability this runner lacks are listed in the job summary as not run.
+      - name: Plan cases from .github/test-matrix.yml
+        id: plan
+        env:
+          PROVIDES: ${{ vars.STEWARD_GITHUB_PROVIDES || 'docker,containerlab,kubernetes,helm,srlinux' }}
+          SRSIM: ${{ secrets.SRSIM_LICENSE != '' && ',srsim' || '' }}
+        run: python .github/scripts/matrix.py github --provides "$PROVIDES$SRSIM" >> "$GITHUB_OUTPUT"
 
-      - name: Install Ansible (specific version)
-        run: pip install "ansible-core==${{ matrix.ansible-version }}.*"
+  test:
+    name: ${{ matrix.name }}
+    needs: plan
+    if: needs.plan.outputs.count != '0'
+    runs-on: ubuntu-latest
+    continue-on-error: ${{ matrix.experimental }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.plan.outputs.cases) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
 
-      - name: Install Ansible collections
-        run: |
-          ansible-galaxy collection install ansible.netcommon ansible.utils community.general
+      - name: Export the case inputs
+        env:
+          CASE_ENV: ${{ toJSON(matrix.env) }}
+        run: jq -r 'to_entries[] | "\(.key)=\(.value)"' <<< "$CASE_ENV" >> "$GITHUB_ENV"
 
-      - name: Build and install this collection
-        run: |
-          ansible-galaxy collection install .
+      - name: Setup Python ${{ matrix.python }}
+        if: matrix.python != ''
+        uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python }}
+          allow-prereleases: true
+
+      - name: Setup Go ${{ matrix.go }}
+        if: matrix.go != ''
+        uses: actions/setup-go@v7
+        with:
+          go-version: ${{ matrix.go }}
+
+      - name: Setup Node ${{ matrix.node }}
+        if: matrix.node != ''
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node }}
+
+      # rustup is preinstalled on GitHub-hosted runners.
+      - name: Setup Rust ${{ matrix.rust }}
+        if: matrix.rust != ''
+        env:
+          RUST: ${{ matrix.rust }}
+        run: rustup toolchain install "$RUST" --profile minimal && rustup default "$RUST"
+
+      - name: Install packages
+        if: matrix.apt != ''
+        env:
+          APT: ${{ matrix.apt }}
+        run: sudo apt-get update && sudo apt-get install -y $APT
 
       - name: Install containerlab
+        if: matrix.containerlab
         run: bash -c "$(curl -sL https://get.containerlab.dev)"
 
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
+      - name: Create Kubernetes cluster (kind)
+        if: matrix.kubernetes
+        uses: helm/kind-action@v1
+
+      - name: Setup Helm
+        if: matrix.helm
+        uses: azure/setup-helm@v5
+
+      - name: SR OS simulator license
+        if: matrix.srsim
+        env:
+          SRSIM_LICENSE: ${{ secrets.SRSIM_LICENSE }}
+        run: |
+          printf '%s\n' "$SRSIM_LICENSE" > "$RUNNER_TEMP/srsim.license"
+          echo "SRSIM_LICENSE_FILE=$RUNNER_TEMP/srsim.license" >> "$GITHUB_ENV"
+
+      - name: make test-setup
+        id: setup
+        run: make test-setup
+
+      - name: ${{ matrix.run }}
+        id: suite
+        timeout-minutes: ${{ matrix.timeout }}
+        run: ${{ matrix.run }}
+
+      - name: Summary
+        if: always()
+        env:
+          SUITE: ${{ matrix.suite }}
+          LABEL: ${{ matrix.label }}
+          SETUP: ${{ steps.setup.outcome }}
+          OUTCOME: ${{ steps.suite.outcome }}
+          EXPERIMENTAL: ${{ matrix.experimental && '--experimental' || '' }}
+        run: |
+          python3 .github/scripts/summary.py case --suite "$SUITE" --case "$LABEL" \
+            --setup-outcome "$SETUP" --outcome "$OUTCOME" $EXPERIMENTAL >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload test output
+        if: always()
+        uses: actions/upload-artifact@v7
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Pull nokia_srsim docker image
-        run: |
-          docker pull ghcr.io/nokia/nokia_srsim:${{ matrix.sros-version }}
-#          docker pull ghcr.io/nokia/srlinux:latest
-
-      - name: Create license file
-        run: |
-          echo $SRSIM_LICENSE > tests/license.txt
-
-      - name: Run Tests
-        run: |
-          cd tests
-          chmod +x run.sh
-          ./run.sh deploy
-          cat clab-ansible/ansible-inventory.yml
-          ./run.sh run --category all --quiet --all
-          ./run.sh destroy
+          name: ${{ matrix.id }}
+          path: tests/output/
+          if-no-files-found: ignore

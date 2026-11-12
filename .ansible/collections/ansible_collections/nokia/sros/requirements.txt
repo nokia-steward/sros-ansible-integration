@@ -1,0 +1,5 @@
+# Controller: Python 3.12+, ansible-core 2.20+
+ansible-core>=2.20.0
+ansible-pylibssh>=1.3.0
+jxmlease>=1.0.3
+ncclient>=0.6.19

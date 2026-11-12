@@ -1,0 +1,5 @@
+plugins/cliconf/classic.py validate-modules:missing-gplv3-license # BSD-3-Clause licensed collection
+plugins/cliconf/light.py validate-modules:missing-gplv3-license # BSD-3-Clause licensed collection
+plugins/cliconf/md.py validate-modules:missing-gplv3-license # BSD-3-Clause licensed collection
+plugins/modules/device_info.py validate-modules:missing-gplv3-license # BSD-3-Clause licensed collection
+plugins/netconf/md.py validate-modules:missing-gplv3-license # BSD-3-Clause licensed collection

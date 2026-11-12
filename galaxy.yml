@@ -1,13 +1,15 @@
 namespace: nokia
 name: sros
-version: 2.0.0
+version: 2.2.0
 readme: README.md
 authors:
 - Sven Wisotzky <sven.wisotzky@nokia.com>
-description: Ansible collection to support networking devices running Nokia SR OS
-license: BSD-3-Clause
+description: Ansible CLI and NETCONF plugins for Nokia SR OS, with workflow playbooks. Validated on SR OS 25.7 and 25.10.
+license:
+  - BSD-3-Clause
 tags:
 - backup
+- networking
 - nokia
 - sros
 - timos
@@ -18,14 +20,30 @@ tags:
 dependencies:
   ansible.netcommon: ">=5.2.0"
   ansible.utils: ">=3.0.0"
-repository: https://github.com/nokia/sros-ansible-integration
-documentation: https://github.com/nokia/sros-ansible-integration
-homepage: https://github.com/nokia/sros-ansible-integration
-issues: https://github.com/nokia/sros-ansible-integration/issues
+repository: https://github.com/nokia-steward/sros-ansible-integration
+documentation: https://nokia-steward.github.io/sros-ansible-integration/
+homepage: https://nokia-steward.github.io/sros-ansible-integration/
+issues: https://github.com/nokia-steward/sros-ansible-integration/issues
 
 build_ignore:
-  - .github/
-  - tools/
-  - tests/
+  - .flake8
+  - .pylintrc
+  - .pylintrc.plugins
+  - .ansible-lint
+  - .github
+  - .gitignore
+  - .venv
+  - .vscode
+  - .build
+  - dist
+  - docs
+  - site
+  - tools
+  - tests
+  - mkdocs.yml
+  - Makefile
+  - requirements-dev.txt
+  - '*.tar.gz'
+  - '**/__pycache__'
   - CHANGELOG.md
   - CONTRIBUTING.md

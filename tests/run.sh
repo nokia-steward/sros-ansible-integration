@@ -1,290 +1,316 @@
 #!/usr/bin/env bash
+# version: 1
+# Copied from nokia-steward-validator pattern/. Do not edit: the linter checks this file is unchanged.
 #
-#    run.sh — Manage containerlab lifecycle and run categorized Ansible playbooks
+#    run.sh - containerlab lab plus categorized Ansible playbooks, results as JUnit XML
 #
 #    Usage:
-#      ./run.sh <command> [options]
+#      tests/run.sh <command> [options]
 #
 #    Commands:
-#      deploy      Deploy containerlab topology
-#      run         Run categorized playbooks
-#      destroy     Destroy containerlab topology
-#      sanity      Full sequence: deploy, run, destroy
-#      help        Show this help message
+#      integration  deploy, run, destroy; destroy also runs after a failure
+#      deploy       deploy the lab from a clean state
+#      run          run the playbook categories against the deployed lab
+#      destroy      destroy the lab
+#      help         show this help
 #
 #    Options:
-#      -t, --topo <file>        Containerlab topology file (default: ./topo.clab.yml)
-#      -p, --playbooks <file>   Playbook YAML inventory (default: ./playbooks.yml)
-#      -c, --category <name>    Run only a specific category (default: all)
-#      -q, --quiet              Suppress Ansible playbook console output
-#      -a, --all                Run all tests aka continue on error
-#      -l, --log <file>         Log file path for detailed test results
-#      -n, --lab-name <name>    Override lab name (default: from topo.clab.yml)
+#      -t, --topo <file>        containerlab topology (default: ./topo.clab.yml)
+#      -p, --playbooks <file>   playbook categories (default: ./playbooks.yml)
+#      -s, --suite <name>       suite name for the results (default: $STEWARD_SUITE, else integration)
+#      -c, --category <name>    run one category only (default: all)
+#      -x, --exitfirst          stop at the first failed playbook
+#      -q, --quiet              playbook output goes to the log files only
 #
-#    Environment Variables:
-#      LAB_NAME                 Override lab name for parallel execution
-#      LOG_FILE                 Path to log file for test results
-#      SROS_VERSION             SR OS version for containerlab (e.g., 25.7.R2)
+#    Results, relative to tests/:
+#      output/junit/<suite>.xml      one testcase per playbook: passed, failed with a
+#                                    one-line message, or skipped with the reason
+#      output/logs/<suite>/*.log     full ansible-playbook output, one file per playbook
+#      output/logs/<suite>/nodes/    container logs of the lab nodes (integration only)
 #
-#    Example:
-#      ./run.sh deploy
-#      ./run.sh run --category all --quiet --all --log results.log
-#      ./run.sh destroy
-#      LAB_NAME="test-123" ./run.sh sanity --all
+#    playbooks.yml lists categories; a category names the inventory group it needs
+#    (hosts, default all). A category whose group has no hosts is reported as skipped.
+#    Playbook entries may carry ansible-playbook options, e.g. "playbooks/x.yml --diff".
+#
+#    SRSIM_LICENSE_FILE, when set, is copied to ./license.txt for the topology and removed
+#    again by destroy. Without it, a license.txt placed by hand is used and kept.
+#    The exit code is 1 when the lab failed to deploy or any playbook failed.
+#
+#    Examples:
+#      tests/run.sh integration --topo topo.clab.yml --suite integration-sros
+#      tests/run.sh deploy && tests/run.sh run --category netconf && tests/run.sh destroy
 #
 
 set -euo pipefail
+
+cd "$(dirname "$0")"
 
 # --- Defaults ----------------------------------------------------------------
 
 TOPOLOGY_FILE="./topo.clab.yml"
 PLAYBOOK_FILE="./playbooks.yml"
+SUITE="${STEWARD_SUITE:-integration}"
 CATEGORY=""
-RUN_ALL=false
+EXIT_FIRST=false
 QUIET=false
-LOG_FILE="${LOG_FILE:-}"
-LAB_NAME="${LAB_NAME:-}"
+
+OUTPUT_DIR="./output"
+RESULTS=()
+FAILED=false
 
 # --- Logging -----------------------------------------------------------------
 
-# Initialize test summary counters
-TESTS_PASSED=0
-TESTS_FAILED=0
-FAILED_TESTS=()
-
 log() {
-  local bold="\033[1m"
-  local color_red="\033[31m"
-  local color_green="\033[32m"
-  local color_yellow="\033[33m"
-  local reset="\033[0m"
-
   local level="$1"; shift
-  local msg="$*"
-  local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
-  
   case "$level" in
-    BOLD) 
-      echo -e "${bold}${color_yellow}[INFO]${reset} ${bold}$msg${reset}"
-      [[ -n "$LOG_FILE" ]] && echo "[$timestamp] [INFO] $msg" >> "$LOG_FILE"
-      ;;
-    INFO) 
-      echo -e "${color_yellow}[INFO]${reset} $msg"
-      [[ -n "$LOG_FILE" ]] && echo "[$timestamp] [INFO] $msg" >> "$LOG_FILE"
-      ;;
-    OK) 
-      echo -e "${color_green}[OK]${reset} $msg"
-      [[ -n "$LOG_FILE" ]] && echo "[$timestamp] [OK] $msg" >> "$LOG_FILE"
-      ;;
-    FAIL) 
-      echo -e "${color_red}[FAIL]${reset} $msg"
-      [[ -n "$LOG_FILE" ]] && echo "[$timestamp] [FAIL] $msg" >> "$LOG_FILE"
-      ;;
-    *) 
-      echo "$msg"
-      [[ -n "$LOG_FILE" ]] && echo "[$timestamp] $msg" >> "$LOG_FILE"
-      ;;
+    INFO) echo "[INFO] $*" ;;
+    OK) echo "[OK] $*" ;;
+    SKIP) echo "[SKIPPED] $*" ;;
+    FAIL) echo "[FAIL] $*" ;;
+    *) echo "$*" ;;
   esac
 }
 
-print_summary() {
-  local total=$((TESTS_PASSED + TESTS_FAILED))
-  log INFO "========================================="
-  log INFO "Test Summary"
-  log INFO "========================================="
-  log INFO "Total tests:  $total"
-  log INFO "Passed:       $TESTS_PASSED"
-  if [[ $TESTS_FAILED -gt 0 ]]; then
-    log FAIL "Failed:       $TESTS_FAILED"
-  else
-    log INFO "Failed:       $TESTS_FAILED"
-  fi
-  
-  if [[ $TESTS_FAILED -gt 0 ]]; then
-    log INFO ""
-    log INFO "Failed tests:"
-    for test in "${FAILED_TESTS[@]}"; do
-      log FAIL "  - $test"
-    done
-  fi
-  log INFO "========================================="
-}
-
-# --- YAML Helpers ------------------------------------------------------------
+# --- YAML helpers (PyYAML ships with ansible-core) ---------------------------
 
 yaml_categories() {
-python3 - "$PLAYBOOK_FILE" << EOF
-import sys, yaml
-data = yaml.safe_load(open(sys.argv[1]))
-for c in data.get("categories", {}): print(c)
-EOF
+  python3 -c 'import sys, yaml; [print(c) for c in (yaml.safe_load(open(sys.argv[1])) or {}).get("categories", {})]' \
+    "$PLAYBOOK_FILE"
+}
+
+yaml_category_hosts() {
+  python3 -c 'import sys, yaml; print(((yaml.safe_load(open(sys.argv[1])) or {}).get("categories", {}).get(sys.argv[2]) or {}).get("hosts", "all"))' \
+    "$PLAYBOOK_FILE" "$1"
 }
 
 yaml_playbooks() {
-python3 - "$PLAYBOOK_FILE" "$1" << EOF
-import sys, yaml
-data = yaml.safe_load(open(sys.argv[1]))
-cat = sys.argv[2]
-for p in data.get("categories", {}).get(cat, {}).get("playbooks", []): print(p)
-EOF
+  python3 -c 'import sys, yaml; [print(p) for p in ((yaml.safe_load(open(sys.argv[1])) or {}).get("categories", {}).get(sys.argv[2]) or {}).get("playbooks", [])]' \
+    "$PLAYBOOK_FILE" "$1"
 }
 
-# --- Containerlab Lifecycle --------------------------------------------------
+host_count() {
+  local count
+  count="$(ansible "$1" --list-hosts 2>/dev/null | sed -n 's/^ *hosts (\([0-9]*\)):.*/\1/p')"
+  echo "${count:-0}"
+}
+
+# --- Results -----------------------------------------------------------------
+
+# Each result: category|name|status|seconds|message
+record() {
+  RESULTS+=("$1|$2|$3|$4|${5:-}")
+  [[ "$3" == "failed" ]] && FAILED=true
+  return 0
+}
+
+xml_escape() {
+  local s
+  s="$(printf '%s' "$1" | tr -d '\000-\010\013\014\016-\037')"
+  s="${s//&/&amp;}"
+  s="${s//</&lt;}"
+  s="${s//>/&gt;}"
+  s="${s//\"/&quot;}"
+  printf '%s' "$s"
+}
+
+write_junit() {
+  local junit="$OUTPUT_DIR/junit/$SUITE.xml"
+  local total=0 failures=0 skipped=0 entry category name status seconds message
+  mkdir -p "$OUTPUT_DIR/junit"
+  for entry in ${RESULTS[@]+"${RESULTS[@]}"}; do
+    IFS='|' read -r category name status seconds message <<< "$entry"
+    total=$((total + 1))
+    [[ "$status" == "failed" ]] && failures=$((failures + 1))
+    [[ "$status" == "skipped" ]] && skipped=$((skipped + 1))
+  done
+  {
+    echo '<?xml version="1.0" encoding="UTF-8"?>'
+    echo "<testsuites><testsuite name=\"$(xml_escape "$SUITE")\" tests=\"$total\" failures=\"$failures\" skipped=\"$skipped\">"
+    for entry in ${RESULTS[@]+"${RESULTS[@]}"}; do
+      IFS='|' read -r category name status seconds message <<< "$entry"
+      printf '  <testcase classname="%s" name="%s" time="%s">' \
+        "$(xml_escape "$category")" "$(xml_escape "$name")" "$seconds"
+      case "$status" in
+        failed) printf '<failure message="%s"/>' "$(xml_escape "$message")" ;;
+        skipped) printf '<skipped message="%s"/>' "$(xml_escape "$message")" ;;
+      esac
+      echo "</testcase>"
+    done
+    echo "</testsuite></testsuites>"
+  } > "$junit"
+  log INFO "Results: tests/${junit#./} ($total tests, $failures failed, $skipped skipped)"
+}
+
+# The first error a reader needs, on one line: "<host>: <msg>", an Ansible ERROR!, or the exit code.
+failure_message() {
+  local logfile="$1" rc="$2" line host msg
+  line="$(grep -m1 -E '(fatal|failed): \[' "$logfile" 2>/dev/null || true)"
+  if [[ -n "$line" ]]; then
+    host="$(sed -nE 's/.*(fatal|failed): \[([^]]+)\].*/\2/p' <<< "$line")"
+    msg="$(grep -m1 -oE '"msg": "([^"\\]|\\.)*"' <<< "$line" | sed -E 's/^"msg": "//; s/"$//; s/\\"/"/g' || true)"
+    if [[ -z "$msg" ]]; then
+      msg="$(grep -A30 -m1 -E '(fatal|failed): \[' "$logfile" | grep -m1 -E '^ *"?msg"?: ' \
+        | sed -E 's/^ *"?msg"?: *//; s/^"//; s/",?$//' || true)"
+    fi
+    echo "${host:-host}: ${msg:-task failed} (exit code $rc)" | head -c 300
+    return
+  fi
+  line="$(grep -m1 '^ERROR!' "$logfile" 2>/dev/null || true)"
+  if [[ -n "$line" ]]; then
+    echo "$line" | head -c 300
+    return
+  fi
+  echo "ansible-playbook exited with $rc"
+}
+
+# --- Containerlab lifecycle --------------------------------------------------
+
+copy_license() {
+  if [[ -n "${SRSIM_LICENSE_FILE:-}" ]]; then
+    if [[ ! -r "$SRSIM_LICENSE_FILE" ]]; then
+      log FAIL "SRSIM_LICENSE_FILE=$SRSIM_LICENSE_FILE is not readable"
+      return 1
+    fi
+    cp "$SRSIM_LICENSE_FILE" license.txt
+    chmod 600 license.txt
+    touch license.copied
+  fi
+}
 
 start_lab() {
-  local topo_args="-t $TOPOLOGY_FILE --reconfigure"
-  
-  # If LAB_NAME is set, override the lab name
-  if [[ -n "$LAB_NAME" ]]; then
-    log INFO "Deploying containerlab with custom lab name: $LAB_NAME"
-    topo_args="$topo_args --name $LAB_NAME"
-  else
-    log INFO "Deploying containerlab topology: $TOPOLOGY_FILE"
-  fi
-  
-  sudo containerlab deploy $topo_args
-  log OK "Containerlab deployed successfully"
+  copy_license || return 1
+  log INFO "Destroying a lab left behind by an earlier run, if any"
+  sudo -E containerlab destroy -t "$TOPOLOGY_FILE" --cleanup > /dev/null 2>&1 || true
+  log INFO "Deploying containerlab topology: $TOPOLOGY_FILE"
+  sudo -E containerlab deploy -t "$TOPOLOGY_FILE" --reconfigure || return 1
+  log OK "Lab deployed"
+}
+
+collect_node_logs() {
+  local lab node dir="$OUTPUT_DIR/logs/$SUITE/nodes"
+  lab="$(python3 -c 'import sys, yaml; print((yaml.safe_load(open(sys.argv[1])) or {}).get("name", ""))' \
+    "$TOPOLOGY_FILE" 2>/dev/null || true)"
+  [[ -n "$lab" ]] || return 0
+  mkdir -p "$dir"
+  for node in $(sudo docker ps -a --filter "label=containerlab=$lab" --format '{{.Names}}' 2>/dev/null); do
+    { sudo docker logs "$node" 2>&1; } > "$dir/$node.log" || true
+  done
 }
 
 stop_lab() {
-  local topo_args="-t $TOPOLOGY_FILE"
-  
-  # If LAB_NAME is set, use it for destroy
-  if [[ -n "$LAB_NAME" ]]; then
-    log INFO "Destroying containerlab: $LAB_NAME"
-    topo_args="$topo_args --name $LAB_NAME"
-  else
-    log INFO "Destroying containerlab topology"
+  log INFO "Destroying containerlab topology: $TOPOLOGY_FILE"
+  sudo -E containerlab destroy -t "$TOPOLOGY_FILE" --cleanup || true
+  if [[ -f license.copied ]]; then
+    rm -f license.txt license.copied
   fi
-  
-  sudo containerlab destroy $topo_args || true
-  log OK "Containerlab destroyed"
+  log OK "Lab destroyed"
 }
 
-# --- Playbook Runner ---------------------------------------------------------
+# --- Playbooks ---------------------------------------------------------------
 
 run_playbook() {
-  local pb="${1:-}"
-  local start_time=$(date +%s)
-  local result=0
+  local category="$1" entry="$2" start rc=0 seconds logfile args
+  read -ra args <<< "$entry"
+  logfile="$OUTPUT_DIR/logs/$SUITE/${category}__$(basename "${args[0]}" .yml).log"
+  start=$(date +%s)
 
-  # Create a temporary log file for this playbook execution
-  local pb_log_file=""
-  if [[ -n "$LOG_FILE" ]]; then
-    pb_log_file="${LOG_FILE%.log}-$(basename ${pb%% *}).log"
-  fi
-
-  # Execute quietly or verbosely
   set +e
   if $QUIET; then
-    log INFO "Running: ansible-playbook $pb"
-    if [[ -n "$pb_log_file" ]]; then
-      ansible-playbook $pb > "$pb_log_file" 2>&1
-      result=$?
-    else
-      ansible-playbook $pb >/dev/null 2>&1
-      result=$?
-    fi
+    log INFO "Running: ansible-playbook $entry"
+    ansible-playbook "${args[@]}" > "$logfile" 2>&1
+    rc=$?
   else
-    log BOLD "Running: ansible-playbook $pb"
-    if [[ -n "$pb_log_file" ]]; then
-      ANSIBLE_FORCE_COLOR=true ansible-playbook $pb 2>&1 | tee "$pb_log_file" | sed 's/^/    /'
-      result=${PIPESTATUS[0]}
-    else
-      ANSIBLE_FORCE_COLOR=true ansible-playbook $pb 2>&1 | sed 's/^/    /'
-      result=${PIPESTATUS[0]}
-    fi
+    log INFO "Running: ansible-playbook $entry"
+    ansible-playbook "${args[@]}" 2>&1 | tee "$logfile" | sed 's/^/    /'
+    rc=${PIPESTATUS[0]}
   fi
   set -e
+  seconds=$(( $(date +%s) - start ))
 
-  local duration=$(( $(date +%s) - start_time ))
-
-  if [[ ${result} -eq 120 ]]; then
-    log FAIL "Execution interrupted by user (Ctrl-C)"
-    exit $result
-  elif [[ ${result} -ne 0 ]]; then
-    TESTS_FAILED=$((TESTS_FAILED + 1))
-    FAILED_TESTS+=("$pb")
-    log FAIL "$pb failed after ${duration}s"
-    [[ -n "$pb_log_file" ]] && log INFO "  Details in: $pb_log_file"
-    if ! $RUN_ALL; then
-      # terminate script
+  if [[ $rc -eq 130 ]]; then
+    log FAIL "Interrupted"
+    record "$category" "$entry" failed "$seconds" "interrupted"
+    write_junit
+    exit 130
+  elif [[ $rc -ne 0 ]]; then
+    log FAIL "$entry failed after ${seconds}s (log: tests/${logfile#./})"
+    record "$category" "$entry" failed "$seconds" "$(failure_message "$logfile" "$rc")"
+    if $EXIT_FIRST; then
+      write_junit
       exit 1
     fi
   else
-    TESTS_PASSED=$((TESTS_PASSED + 1))
-    log OK "$pb succeeded in ${duration}s"
+    log OK "$entry passed in ${seconds}s"
+    record "$category" "$entry" passed "$seconds"
   fi
 }
-
-# --- Test Orchestration ------------------------------------------------------
 
 run_tests() {
+  local category hosts count playbook
+  mkdir -p "$OUTPUT_DIR/logs/$SUITE"
   log INFO "Running playbooks from $PLAYBOOK_FILE"
-  
-  # Initialize log file if specified
-  if [[ -n "$LOG_FILE" ]]; then
-    log INFO "Test logs will be written to: $LOG_FILE"
-    mkdir -p "$(dirname "$LOG_FILE")"
-    echo "Test Execution Log - Started at $(date)" > "$LOG_FILE"
-    echo "==========================================" >> "$LOG_FILE"
-  fi
-  
-  for cat in $(yaml_categories); do
-    if [[ -n "$CATEGORY" && "$CATEGORY" != "all" && "$CATEGORY" != "$cat" ]]; then
+  for category in $(yaml_categories); do
+    if [[ -n "$CATEGORY" && "$CATEGORY" != all && "$CATEGORY" != "$category" ]]; then
       continue
     fi
-    
-    log INFO "=== CATEGORY: $cat ==="
-
+    log INFO "=== CATEGORY: $category ==="
+    hosts="$(yaml_category_hosts "$category")"
+    count="$(host_count "$hosts")"
+    if [[ "$count" -eq 0 ]]; then
+      log SKIP "$category: no hosts in inventory group '$hosts'"
+      while IFS= read -r playbook; do
+        record "$category" "$playbook" skipped 0 "no hosts in inventory group $hosts"
+      done < <(yaml_playbooks "$category")
+      continue
+    fi
     while IFS= read -r playbook; do
-      [[ -n "$playbook" ]] || continue
-      run_playbook "$playbook"
-    done < <(yaml_playbooks "$cat")
+      [[ -n "$playbook" ]] && run_playbook "$category" "$playbook"
+    done < <(yaml_playbooks "$category")
   done
-  
-  # Print summary at the end
-  print_summary
-  
-  # Exit with error if any tests failed
-  if [[ $TESTS_FAILED -gt 0 ]]; then
-    exit 1
+  write_junit
+  if $FAILED; then
+    return 1
   fi
 }
 
-# --- Sanity Sequence ---------------------------------------------------------
-
-sanity_run() {
-  log INFO "Starting full sanity sequence"
-  start_lab
-  run_tests
+integration() {
+  local status=0
+  if ! start_lab; then
+    record lab deploy failed 0 "containerlab deploy failed for $TOPOLOGY_FILE"
+    write_junit
+    collect_node_logs
+    stop_lab
+    exit 1
+  fi
+  # A subshell, so that --exitfirst and Ctrl-C still reach stop_lab.
+  ( run_tests ) || status=$?
+  collect_node_logs
   stop_lab
-  log OK "Sanity sequence completed"
+  exit "$status"
 }
 
 # --- CLI ---------------------------------------------------------------------
 
-COMMAND="${1:-sanity}"
+COMMAND="${1:-help}"
 shift || true
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     -t|--topo) TOPOLOGY_FILE="$2"; shift 2 ;;
     -p|--playbooks) PLAYBOOK_FILE="$2"; shift 2 ;;
+    -s|--suite) SUITE="$2"; shift 2 ;;
     -c|--category) CATEGORY="$2"; shift 2 ;;
+    -x|--exitfirst) EXIT_FIRST=true; shift ;;
     -q|--quiet) QUIET=true; shift ;;
-    -a|--all) RUN_ALL=true; shift ;;
-    -l|--log) LOG_FILE="$2"; shift 2 ;;
-    -n|--lab-name) LAB_NAME="$2"; shift 2 ;;
-    *) echo "Unknown option: $1"; exit 1 ;;
+    *) echo "Unknown option: $1" >&2; exit 2 ;;
   esac
 done
 
 case "$COMMAND" in
+  integration) integration ;;
   deploy) start_lab ;;
   run) run_tests ;;
   destroy) stop_lab ;;
-  sanity) sanity_run ;;
-  help) grep '^#  ' "$0" | sed 's/^# \{0,4\}//'; exit 0 ;;
-  *) echo "Usage: $0 {deploy|run|destroy|sanity|help}"; exit 1 ;;
+  help) awk 'NR > 3 { if (!/^#/) exit; sub(/^#    /, ""); sub(/^#/, ""); print }' "$(basename "$0")"; exit 0 ;;
+  *) echo "Usage: $0 {integration|deploy|run|destroy|help}" >&2; exit 2 ;;
 esac

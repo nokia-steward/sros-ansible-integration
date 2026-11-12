@@ -1,16 +1,33 @@
-# Test Matrix Configuration
-# Single source of truth for all CI/CD test configurations
-# This file defines which version combinations are tested
+# Test matrix: the single source of truth for GitHub Actions (.github/workflows/ci.yml) and
+# nokia-steward-validator. Format: nokia-steward pattern version 1.
+#
+# Controller versions follow the support policy shared with nokia.openconfig and nokia.nsp:
+# the ansible-core releases that still receive security fixes, each paired with a controller
+# Python that it supports. Integration runs every controller against the newest SR OS release,
+# and the recommended controller (ansible-core 2.22, Python 3.13) against every SR OS release.
+version: 1
 
-test_matrix:
-  python_versions:
-    - '3.13'
-    - '3.14'
-  
-  sros_versions:
-    - '25.7.R2'
-    - '25.10.R1'
-  
-  ansible_versions:
-    - '2.17'
-    - '2.18'
+environment:
+  apt: [libssh-dev]
+
+inputs:
+  python:  {toolchain: python}
+  ansible: {env: ANSIBLE_VERSION}
+  sros:    {env: SROS_VERSION, requires: [srsim]}
+
+suites:
+  sanity:
+    run: make test-sanity
+    timeout_minutes: 30
+    cases:
+      - {python: '3.12', ansible: '2.20'}
+      - {python: '3.14', ansible: '2.21'}
+      - {python: '3.13', ansible: '2.22'}
+      - {python: '3.14', ansible: devel, experimental: true}
+
+  integration-sros:
+    run: make test-integration-sros
+    timeout_minutes: 45
+    cases:
+      - {python: '3.14', ansible: '2.21', sros: '25.10.R1'}
+      - {python: '3.13', ansible: '2.22', sros: '26.10.R1'}

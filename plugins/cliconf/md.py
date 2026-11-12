@@ -4,32 +4,28 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 from __future__ import (absolute_import, division, print_function)
-__metaclass__ = type
+__metaclass__ = type  # pylint: disable=invalid-name
 
 DOCUMENTATION = """
 ---
-author: Nokia
-cliconf: nokia.sros.md
+author: Sven Wisotzky (@wisotzky)
+name: md
 short_description: Cliconf plugin to configure and run CLI commands on Nokia SR OS devices (model-driven mode)
 description:
   - This plugin provides low level abstraction APIs for sending CLI commands and
     receiving responses from Nokia SR OS network devices.
 """
 
+# pylint: disable=wrong-import-position
 import re
 import json
+from collections.abc import Mapping
 
 from ansible.errors import AnsibleConnectionFailure
-from ansible.module_utils.common._collections_compat import Mapping
-from ansible.module_utils._text import to_text
+from ansible.module_utils.common.text.converters import to_text
 from ansible.plugins.cliconf import CliconfBase
 
-try:
-    from ansible_collections.ansible.netcommon.plugins.module_utils.network.common.utils import to_list
-    
-except ImportError:
-    # if netcommon is not installed, fallback for Ansible 2.8 and 2.9
-    from ansible.module_utils.network.common.utils import to_list
+from ansible_collections.ansible.netcommon.plugins.module_utils.network.common.utils import to_list
 
 
 class Cliconf(CliconfBase):
@@ -68,7 +64,7 @@ class Cliconf(CliconfBase):
         }
 
     def get_device_info(self):
-        device_info = dict()
+        device_info = {}
         device_info['network_os'] = 'nokia.sros.md'
         device_info['network_os_platform'] = 'Nokia 7x50'
 
@@ -96,7 +92,7 @@ class Cliconf(CliconfBase):
         return device_info
 
     def get_capabilities(self):
-        capabilities = super(Cliconf, self).get_capabilities()
+        capabilities = super().get_capabilities()
         capabilities['device_operations'] = self.get_device_operations()
         capabilities['rpc'] += self.get_sros_rpc()
         capabilities['device_info'] = self.get_device_info()
@@ -171,6 +167,7 @@ class Cliconf(CliconfBase):
         match = re.search(r'Configuration Mode Oper:\s+(.+)', data)
         return not match or match.group(1) == 'classic'
 
+    # pylint: disable=arguments-renamed,redefined-builtin,too-many-branches
     def get_config(self, source='running', format='text', flags=None):
         # This Ansible module exits config-mode after any edit-config operation.
         # Therefore, accessing source='candidate' (when running in config-mode)
@@ -184,10 +181,11 @@ class Cliconf(CliconfBase):
             flags = []
 
         if source not in ('startup', 'candidate', 'running', 'intended', 'active'):
-            raise ValueError("fetching configuration from %s is not supported" % source)
+            raise ValueError(f"fetching configuration from {source} is not supported")
 
         if format not in self.get_option_values()['format']:
-            raise ValueError("'format' value %s is invalid. Valid values are %s" % (format, ','.join(self.get_option_values()['format'])))
+            valid = ','.join(self.get_option_values()['format'])
+            raise ValueError(f"'format' value {format} is invalid. Valid values are {valid}")
 
         if self.is_classic_mode():
             raise ValueError("Nokia SROS node is running in classic mode. Use ansible_network_os=nokia.sros.classic")
@@ -222,11 +220,13 @@ class Cliconf(CliconfBase):
             self.send_command('exit all')
             self.send_command('quit-config')
         else:
-           response = self.send_command(' '.join(['/admin show configuration', source] + flags))
+            response = self.send_command(' '.join(['/admin show configuration', source] + flags))
 
         return response
 
-    def edit_config(self, candidate=None, commit=True, replace=None, comment=None):
+    def edit_config(  # pylint: disable=arguments-differ,too-many-branches
+        self, candidate=None, commit=True, replace=None, comment=None,
+    ):
         operations = self.get_device_operations()
         self.check_edit_config_capability(operations, candidate, commit, replace, comment)
 
@@ -259,14 +259,14 @@ class Cliconf(CliconfBase):
                     replace = 'ansible.cfg'
 
                 self.send_command('configure')
-                self.send_command('load full-replace {0}'.format(replace).strip())
+                self.send_command(f'load full-replace {replace}'.strip())
 
             diffs = self.send_command('compare /').strip()
 
             if commit:
                 if comment:
                     safe_comment = comment.replace('"', "'")
-                    self.send_command('commit comment "%s"' % safe_comment)
+                    self.send_command(f'commit comment "{safe_comment}"')
                 else:
                     self.send_command('commit')
             else:
@@ -278,21 +278,27 @@ class Cliconf(CliconfBase):
 
             if diffs:
                 return {'request': requests, 'response': responses, 'diff': diffs}
-            else:
-                return {'request': requests, 'response': responses}
+            return {'request': requests, 'response': responses}
 
         except AnsibleConnectionFailure as exc:
             self.send_command('discard')
             self.send_command('exit all')
             self.send_command('quit-config')
-            raise exc
+            raise exc from exc
 
-
+    # pylint: disable=arguments-renamed,too-many-arguments,too-many-positional-arguments
     def get(self, command, prompt=None, answer=None, sendonly=False, output=None, newline=True, check_all=False):
         if output:
-            raise ValueError("'output' value %s is not supported for get" % output)
+            raise ValueError(f"'output' value {output} is not supported for get")
 
-        return self.send_command(command=command, prompt=prompt, answer=answer, sendonly=sendonly, newline=newline, check_all=check_all)
+        return self.send_command(
+            command=command,
+            prompt=prompt,
+            answer=answer,
+            sendonly=sendonly,
+            newline=newline,
+            check_all=check_all,
+        )
 
     def rollback(self, rollback_id, commit=True):
         if self.is_classic_mode():
@@ -302,7 +308,7 @@ class Cliconf(CliconfBase):
 
         try:
             self.send_command('configure')
-            self.send_command('rollback {0}'.format(rollback_id).strip())
+            self.send_command(f'rollback {rollback_id}'.strip())
 
             diffs = self.send_command('compare /').strip()
 
@@ -317,16 +323,15 @@ class Cliconf(CliconfBase):
 
             if diffs:
                 return {'diff': diffs}
-            else:
-                return {}
+            return {}
 
         except AnsibleConnectionFailure as exc:
             self.send_command('discard')
             self.send_command('exit all')
             self.send_command('quit-config')
-            raise exc
+            raise exc from exc
 
-    def commit(self):
+    def commit(self):  # pylint: disable=arguments-differ
         if self.is_classic_cli():
             self.send_command('/!md-cli')
 

@@ -14,22 +14,21 @@ permissions:
   contents: write
 
 jobs:
-  build-and-publish:
+  build:
     runs-on: ubuntu-latest
-    environment: release
-    env:
-      ANSIBLE_GALAXY_API_KEY: ${{ secrets.ANSIBLE_GALAXY_API_KEY }}
+    outputs:
+      filename: ${{ steps.meta.outputs.filename }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: '3.13'
 
       - name: Install Ansible
-        run: pip install ansible-core
+        run: pip install 'ansible-core==2.22.*'
 
       - name: Update galaxy.yml version from tag
         env:
@@ -45,7 +44,7 @@ jobs:
           sed -E -i "s/^version:.*/version: ${VERSION}/" galaxy.yml
           echo "Updated galaxy.yml version to ${VERSION}"
 
-      - name: Build and install this collection
+      - name: Build collection
         run: |
           ansible-galaxy collection build .
 
@@ -59,29 +58,85 @@ jobs:
             exit 1
           fi
 
-          echo "FILENAME=$FILENAME" >> "$GITHUB_ENV"
+          echo "filename=$FILENAME" >> "$GITHUB_OUTPUT"
+
+      - name: Validate collection for Ansible Galaxy (galaxy-importer)
+        run: |
+          pip install 'galaxy-importer>=0.4.0'
+          chmod +x tools/import_galaxy.sh
+          tools/import_galaxy.sh "${{ steps.meta.outputs.filename }}"
+
+      - name: Smoke test (Python 3.13, ansible-core 2.22)
+        run: tools/smoke_test.sh "${{ steps.meta.outputs.filename }}"
 
       - name: Upload workflow artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: sros-ansible-integration
-          path: ${{ env.FILENAME }}
+          path: ${{ steps.meta.outputs.filename }}
+
+  # The other controller pairs of .github/test-matrix.yml
+  smoke:
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - python: '3.12'
+            ansible: '2.20'
+          - python: '3.14'
+            ansible: '2.21'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Install ansible-core ${{ matrix.ansible }}
+        run: pip install "ansible-core==${{ matrix.ansible }}.*"
+
+      - name: Download collection
+        uses: actions/download-artifact@v8
+        with:
+          name: sros-ansible-integration
+
+      - name: Smoke test (Python ${{ matrix.python }}, ansible-core ${{ matrix.ansible }})
+        run: tools/smoke_test.sh "${{ needs.build.outputs.filename }}"
+
+  publish:
+    needs: [build, smoke]
+    runs-on: ubuntu-latest
+    environment: release
+    env:
+      ANSIBLE_GALAXY_API_KEY: ${{ secrets.ANSIBLE_GALAXY_API_KEY }}
+    steps:
+      - name: Download collection
+        uses: actions/download-artifact@v8
+        with:
+          name: sros-ansible-integration
 
       - name: Attach collection to GitHub release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ github.event.inputs.tag || github.ref_name }}
-          files: ${{ env.FILENAME }}
+          files: ${{ needs.build.outputs.filename }}
+
+      - name: Install Ansible
+        if: env.ANSIBLE_GALAXY_API_KEY != ''
+        run: pip install 'ansible-core==2.22.*'
 
       - name: Publish to Ansible Galaxy
         if: env.ANSIBLE_GALAXY_API_KEY != ''
         run: |
           echo "Publishing collection to Ansible Galaxy..."
-          ansible-galaxy collection publish ${{ env.FILENAME }} --api-key "$ANSIBLE_GALAXY_API_KEY"
+          ansible-galaxy collection publish "${{ needs.build.outputs.filename }}" --api-key "$ANSIBLE_GALAXY_API_KEY"
 
       - name: Skip Publishing to Ansible Galaxy
         if: env.ANSIBLE_GALAXY_API_KEY == ''
         run: |
           echo "::warning::No ANSIBLE_GALAXY_API_KEY found. Skipping Galaxy publish."
           echo "To enable automatic publishing, add this secret in repository settings."
-...

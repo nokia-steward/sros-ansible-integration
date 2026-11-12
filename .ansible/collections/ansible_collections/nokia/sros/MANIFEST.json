@@ -1,0 +1,43 @@
+{
+ "collection_info": {
+  "namespace": "nokia",
+  "name": "sros",
+  "version": "2.2.0",
+  "authors": [
+   "Sven Wisotzky <sven.wisotzky@nokia.com>"
+  ],
+  "readme": "README.md",
+  "tags": [
+   "backup",
+   "networking",
+   "nokia",
+   "sros",
+   "timos",
+   "netconf",
+   "cli",
+   "cliconf",
+   "terminal"
+  ],
+  "description": "Ansible CLI and NETCONF plugins for Nokia SR OS, with workflow playbooks. Validated on SR OS 25.7 and 25.10.",
+  "license": [
+   "BSD-3-Clause"
+  ],
+  "license_file": null,
+  "dependencies": {
+   "ansible.netcommon": ">=5.2.0",
+   "ansible.utils": ">=3.0.0"
+  },
+  "repository": "https://github.com/nokia-steward/sros-ansible-integration",
+  "documentation": "https://nokia-steward.github.io/sros-ansible-integration/",
+  "homepage": "https://nokia-steward.github.io/sros-ansible-integration/",
+  "issues": "https://github.com/nokia-steward/sros-ansible-integration/issues"
+ },
+ "file_manifest_file": {
+  "name": "FILES.json",
+  "ftype": "file",
+  "chksum_type": "sha256",
+  "chksum_sha256": "9f0d5ec44753ec07fc80232534b3892dd3bc27911ecdf51615b57fc3fceec6bb",
+  "format": 1
+ },
+ "format": 1
+}
