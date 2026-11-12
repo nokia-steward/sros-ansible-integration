@@ -21,6 +21,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ### Fixed
 - Import `to_text` from `ansible.module_utils.common.text.converters` instead of deprecated `ansible.module_utils._text` (ansible-core 2.24), as in [PR #14](https://github.com/nokia-steward/sros-ansible-integration/pull/14)
+- Cliconf plugins import `Mapping` from `collections.abc` instead of the deprecated `ansible.module_utils.common._collections_compat` (removed in ansible-core 2.24)
+- Playbooks no longer nest templates (`'{{ playbook_dir }}'` inside `{{ }}`), which ansible-core 2.23 disables
+- The NETCONF examples use `display: native` (`xmltodict`) instead of `display: json` (`jxmlease`), whose XML node types ansible-core 2.19+ converts with a warning; `xmltodict` replaces `jxmlease` in `requirements.txt`
 - CI integration tests now use the SR OS version of the test matrix (always ran 25.7.R2)
 - Plugin documentation, imports and `device_info` check mode, as required by `ansible-test sanity`
 

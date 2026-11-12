@@ -9,7 +9,7 @@
   tasks:
   - name: add services
     ansible.netcommon.cli_config:
-      config: "{{ lookup('ansible.builtin.template', '{{ playbook_dir }}/templates/addVplsBulk.cli.j2') }}"
+      config: "{{ lookup('ansible.builtin.template', playbook_dir ~ '/templates/addVplsBulk.cli.j2') }}"
 
 
   - name: admin save
@@ -20,7 +20,7 @@
 
   - name: delete services
     ansible.netcommon.cli_config:
-      config: "{{ lookup('ansible.builtin.template', '{{ playbook_dir }}/templates/delVplsBulk.cli.j2') }}"
+      config: "{{ lookup('ansible.builtin.template', playbook_dir ~ '/templates/delVplsBulk.cli.j2') }}"
 
   - name: admin save
     ansible.netcommon.cli_command:

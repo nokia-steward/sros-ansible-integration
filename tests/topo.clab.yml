@@ -16,30 +16,29 @@ topology:
       type: sr-1
       env:
         CLAB_SROS_CONFIG_MODE: classic
+      # Classic CLI syntax: the node runs in classic mode and stops at the first line it cannot parse.
       startup-config: |
         /configure card 1 card-type iom-1
         /configure card 1 mda 1 mda-type me6-100gb-qsfp28
         /configure card 1 mda 2 mda-type me12-100gb-qsfp28
 
         /configure port 1/1/c1 connector breakout c1-100g
-        /configure port 1/1/c1 admin-state enable
+        /configure port 1/1/c1 no shutdown
         /configure port 1/1/c1/1 ethernet mode network
-        /configure port 1/1/c1/1 ethernet lldp dest-mac nearest-bridge receive true
-        /configure port 1/1/c1/1 ethernet lldp dest-mac nearest-bridge transmit true
-        /configure port 1/1/c1/1 admin-state enable
+        /configure port 1/1/c1/1 ethernet lldp dest-mac nearest-bridge admin-status tx-rx
+        /configure port 1/1/c1/1 no shutdown
 
-        /configure router "Base" router-id 10.0.0.220
-        /configure router "Base" autonomous-system 65000
+        /configure router router-id 10.0.0.220
+        /configure router autonomous-system 65000
 
-        /configure router "Base" interface "system" ipv4 primary address 10.0.0.220
-        /configure router "Base" interface "system" ipv4 primary prefix-length 32
+        /configure router interface "system" address 10.0.0.220/32
 
-        /configure router "Base" interface "toMD" port 1/1/c1/1
-        /configure router "Base" interface "toMD" ipv4 primary address 192.168.100.0
-        /configure router "Base" interface "toMD" ipv4 primary prefix-length 31
+        /configure router interface "toMD" address 192.168.100.0/31
+        /configure router interface "toMD" port 1/1/c1/1
 
         /configure system contact "nokia"
-        /configure system security snmp community "public" access-permissions rwa
+        /configure system snmp no shutdown
+        /configure system security snmp community "public" rwa version both
 
     md:
       kind: nokia_srsim

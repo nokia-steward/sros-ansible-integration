@@ -13,8 +13,8 @@ The collection needs these Python packages on the Ansible controller:
 | Package | Version | Purpose |
 | --- | --- | --- |
 | [ansible-pylibssh](https://pypi.org/project/ansible-pylibssh/) | `>=1.3.0` | SSH transport for `ansible.netcommon.network_cli` |
-| [jxmlease](https://pypi.org/project/jxmlease/) | `>=1.0.3` | XML to JSON conversion for NETCONF replies |
 | [ncclient](https://pypi.org/project/ncclient/) | `>=0.6.19` | NETCONF transport for `ansible.netcommon.netconf` |
+| [xmltodict](https://pypi.org/project/xmltodict/) | `>=0.13.0` | NETCONF replies as data (`display: native`) |
 
 The collections [`ansible.netcommon`](https://galaxy.ansible.com/ui/repo/published/ansible/netcommon) (`>=5.2.0`) and [`ansible.utils`](https://galaxy.ansible.com/ui/repo/published/ansible/utils) (`>=3.0.0`) are installed automatically as dependencies of `nokia.sros`.
 
@@ -38,7 +38,7 @@ source ansible-env/bin/activate
 
 ```bash
 pip install --upgrade pip
-pip install 'ansible-core>=2.20' 'ansible-pylibssh>=1.3.0' 'jxmlease>=1.0.3' 'ncclient>=0.6.19'
+pip install 'ansible-core>=2.20' 'ansible-pylibssh>=1.3.0' 'ncclient>=0.6.19' 'xmltodict>=0.13.0'
 ```
 
 ### Step 3: Install the collection
@@ -103,7 +103,7 @@ See the [Developer Guide](../guides/developer-guide.md) for tests and documentat
 ansible-galaxy collection list nokia.sros
 
 # Confirm that the Python dependencies import
-python -c 'import pylibsshext, jxmlease, ncclient; print("ok")'
+python -c 'import pylibsshext, ncclient, xmltodict; print("ok")'
 
 # Show the plugin and module documentation
 ansible-doc -t cliconf nokia.sros.md

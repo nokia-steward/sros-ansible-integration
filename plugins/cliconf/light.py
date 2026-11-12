@@ -20,9 +20,9 @@ description:
 # pylint: disable=wrong-import-position
 import re
 import json
+from collections.abc import Mapping
 
 from ansible.errors import AnsibleConnectionFailure
-from ansible.module_utils.common._collections_compat import Mapping
 from ansible.module_utils.common.text.converters import to_text
 from ansible.plugins.cliconf import CliconfBase
 

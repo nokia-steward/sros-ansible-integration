@@ -30,7 +30,7 @@ We welcome contributions from the community — including tutorials, real-world 
 
 * **Ansible Core** 2.20 or newer (2.22 recommended)
 * **Python** 3.12 or newer on the controller (3.13 recommended)
-* **Python libraries:** [ansible-pylibssh](https://pypi.org/project/ansible-pylibssh) ≥ 1.3.0, [jxmlease](https://pypi.org/project/jxmlease) ≥ 1.0.3, [ncclient](https://pypi.org/project/ncclient) ≥ 0.6.19
+* **Python libraries:** [ansible-pylibssh](https://pypi.org/project/ansible-pylibssh) ≥ 1.3.0, [ncclient](https://pypi.org/project/ncclient) ≥ 0.6.19, [xmltodict](https://pypi.org/project/xmltodict) ≥ 0.13.0
 * **Collections:** [`ansible.netcommon`](https://galaxy.ansible.com/ui/repo/published/ansible/netcommon) ≥ 5.2.0, [`ansible.utils`](https://galaxy.ansible.com/ui/repo/published/ansible/utils) ≥ 3.0.0 (installed with the collection)
 
 Older Ansible and Python releases no longer receive security fixes, see [Supported Ansible and Python versions](https://nokia-steward.github.io/sros-ansible-integration/support/#supported-ansible-and-python-versions).
@@ -53,7 +53,7 @@ python3 -m venv .venv
 source .venv/bin/activate
 
 python -m pip install --upgrade pip
-python -m pip install 'ansible-core>=2.20' 'ansible-pylibssh>=1.3.0' 'jxmlease>=1.0.3' 'ncclient>=0.6.19'
+python -m pip install 'ansible-core>=2.20' 'ansible-pylibssh>=1.3.0' 'ncclient>=0.6.19' 'xmltodict>=0.13.0'
 
 ansible-galaxy collection install nokia.sros
 ```

@@ -105,7 +105,7 @@ On `nokia.sros.md` routers, set the connection to NETCONF to use `ansible.netcom
     - name: Get system state
       ansible.netcommon.netconf_get:
         filter: <state xmlns="urn:nokia.com:sros:ns:yang:sr:state"><system/></state>
-        display: json
+        display: native
       register: result
 
     - name: Display the software version

@@ -12,7 +12,7 @@
       ansible_connection: netconf     
     ansible.netcommon.netconf_get:
       filter: <state xmlns="urn:nokia.com:sros:ns:yang:sr:state"><system/></state>
-      display: json
+      display: native
     register: result
 
   - name: save result
