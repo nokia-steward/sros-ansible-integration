@@ -32,4 +32,5 @@ runs the suites that need no lab (`sanity`) on a workstation.
 `integration-sros` needs the SR OS simulator license. GitHub runs it only when the repository
 has an `SRSIM_LICENSE` secret. Otherwise the job summary lists those cases as "not run on
 GitHub, needs srsim", and a maintainer runs them with nokia-steward-validator, which posts the
-results to the pull request (after the `nokia-validate` label) or to an issue for `master`.
+results to the pull request (after the `ready-for-validation` label; the result shows as
+`validation-passed` or `validation-failed`) or to an issue for `master`.
