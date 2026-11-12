@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 ### Changed
 - Pinned to officially supported Ansible/Python releases, which still receive security (CVE) fixes: `ansible-core` 2.20+ (was 2.17+) and Python 3.12+, recommended 2.22 with Python 3.13. Older releases are best-effort only, see [Support](https://nokia-steward.github.io/sros-ansible-integration/support/#supported-ansible-and-python-versions).
 - Galaxy metadata and links point to the `nokia-steward` repository; collection description mentions workflow playbooks
+- Tests follow the new consistent test pattern: `.github/test-matrix.yml` defines the suites (`sanity`, `integration-sros`), run with `make test-setup` and `make test-<suite>`, with JUnit results. `tests/run.sh integration` replaces `run.sh sanity --all`; `--all` is now the default (`--exitfirst` stops early). ansible-core devel runs as an experimental case.
 
 ### Added
 - Local and CI code quality: `make lint`, `make security`, `make ci`; `.flake8`, `.pylintrc`, `.ansible-lint`; GitHub workflow `security.yml` (Bandit, pip-audit, Trivy, lint)

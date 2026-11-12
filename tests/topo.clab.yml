@@ -7,8 +7,7 @@ name: ansible
 topology:
   kinds:
     nokia_srsim:
-      image: registry.srlinux.dev/pub/nokia_srsim:${SROS_VERSION:=25.7.R2}
-#      image: ghcr.io/nokia/nokia_srsim:${SROS_VERSION:=25.7.R2}
+      image: ${SROS_IMAGE:=registry.srlinux.dev/pub/nokia_srsim}:${SROS_VERSION:=25.7.R2}
       license: ./license.txt
 
   nodes:

@@ -6,18 +6,25 @@ The playbooks under `tests/playbooks/` are the integration test suite. Shipped w
 
 - Docker and containerlab
 - SR OS container image `registry.srlinux.dev/pub/nokia_srsim` (tag from `SROS_VERSION`, default from the topology)
-- License file at `tests/license.txt` (required for deploy)
+- License file at `tests/license.txt`, or `SRSIM_LICENSE_FILE` pointing at one (required for deploy)
 
 ## Quick run
 
 ```bash
+make test-integration-sros        # deploy, run all playbooks, destroy
+```
+
+Or step by step:
+
+```bash
 cd tests
 ./run.sh deploy
-./run.sh run --category all --quiet --all
+./run.sh run --quiet              # or --category netconf
 ./run.sh destroy
 ```
 
 `SROS_VERSION=25.10.R1 ./run.sh deploy` selects the SR OS image tag. `./run.sh help` lists all options.
+Results: `tests/output/junit/<suite>.xml` (one testcase per playbook) and `tests/output/logs/`.
 
 ## Local inventory (no containerlab)
 
@@ -33,4 +40,4 @@ The Makefile uses `tests/inventory.example.yml` when `tests/inventory.yml` is mi
 
 ## CI
 
-`.github/workflows/ci.yml` runs `ansible-test sanity` and the containerlab suite on the versions in `.github/test-matrix.yml`.
+`.github/workflows/ci.yml` runs the `sanity` and `integration-sros` suites on the versions in `.github/test-matrix.yml`. `run.sh` is the shared reference script of the nokia-steward test pattern; do not edit it here.

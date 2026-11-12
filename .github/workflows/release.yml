@@ -20,10 +20,10 @@ jobs:
       filename: ${{ steps.meta.outputs.filename }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: '3.13'
 
@@ -70,7 +70,7 @@ jobs:
         run: tools/smoke_test.sh "${{ steps.meta.outputs.filename }}"
 
       - name: Upload workflow artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: sros-ansible-integration
           path: ${{ steps.meta.outputs.filename }}
@@ -89,10 +89,10 @@ jobs:
             ansible: '2.21'
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python }}
 
@@ -100,7 +100,7 @@ jobs:
         run: pip install "ansible-core==${{ matrix.ansible }}.*"
 
       - name: Download collection
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: sros-ansible-integration
 
@@ -115,12 +115,12 @@ jobs:
       ANSIBLE_GALAXY_API_KEY: ${{ secrets.ANSIBLE_GALAXY_API_KEY }}
     steps:
       - name: Download collection
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: sros-ansible-integration
 
       - name: Attach collection to GitHub release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ github.event.inputs.tag || github.ref_name }}
           files: ${{ needs.build.outputs.filename }}

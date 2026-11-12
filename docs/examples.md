@@ -61,7 +61,7 @@ Categories are defined in [`tests/playbooks.yml`](https://github.com/nokia-stewa
 ```bash
 cd tests
 ./run.sh deploy
-./run.sh run --category all --quiet --all
+./run.sh run --quiet
 ./run.sh destroy
 ```
 

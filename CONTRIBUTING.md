@@ -62,7 +62,8 @@ make install
 
 ### 5. Prepare images and licenses
 
-Pull the `nokia_srsim` container image(s) and place a valid SR OS license file at `tests/license.txt`.
+Pull the `nokia_srsim` container image(s) and place a valid SR OS license file at `tests/license.txt`
+(or point `SRSIM_LICENSE_FILE` at it).
 Install [containerlab](https://containerlab.dev):
 
 ```bash
@@ -74,11 +75,12 @@ bash -c "$(curl -sL https://get.containerlab.dev)"
 ```bash
 cd tests
 ./run.sh deploy
-./run.sh run --category all --quiet --all
+./run.sh run --quiet
 ./run.sh destroy
 ```
 
-`./run.sh sanity --all` runs deploy, all playbooks and destroy in one step.
+`make test-integration-sros` (or `tests/run.sh integration`) runs deploy, all playbooks and destroy
+in one step. Results are written to `tests/output/junit/` and the playbook logs to `tests/output/logs/`.
 
 ✅ **Tip:**
 This workflow is consistent across Linux, macOS, and BSD systems. Only the package-installation commands may vary.
@@ -97,7 +99,7 @@ Follow Ansible and Python best practices:
 
   * `make ci` (Python syntax, playbook syntax, flake8, pylint, yamllint, ansible-lint, bandit, pip-audit)
   * `make sanity` (`ansible-test sanity`, including pep8, pylint and validate-modules)
-  * `tests/run.sh sanity --all` (containerlab integration tests)
+  * `make test-integration-sros` (containerlab integration tests)
 
 ---
 
@@ -123,7 +125,7 @@ We welcome all contributions — from small fixes to major enhancements. Whether
 
 Before submitting a pull request:
 
-* Run `make sanity` and the integration tests (`tests/run.sh sanity --all`)
+* Run `make sanity` and the integration tests (`make test-integration-sros`)
 * Follow [PEP 8](https://peps.python.org/pep-0008/) and Ansible plugin guidelines
 * Ensure changes are documented and clearly commented
 * Update or add integration tests where relevant
