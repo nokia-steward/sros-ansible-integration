@@ -4,7 +4,7 @@ The playbooks under `tests/playbooks/` are the integration test suite. Shipped w
 
 ## Prerequisites
 
-- Docker and containerlab
+- Docker and containerlab 0.83.0 or newer (older releases render a TLS 1.3 cipher that SR OS 26.7 and newer reject)
 - SR OS container image `registry.srlinux.dev/pub/nokia_srsim` (optional `SROS_VERSION`; default in `topo.clab.yml`)
 - License file at `tests/license.txt`, or `SRSIM_LICENSE_FILE` pointing at one (required for deploy)
 

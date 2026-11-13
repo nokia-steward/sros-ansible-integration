@@ -64,10 +64,11 @@ make install
 
 Pull the `nokia_srsim` container image(s) and place a valid SR OS license file at `tests/license.txt`
 (or point `SRSIM_LICENSE_FILE` at it).
-Install [containerlab](https://containerlab.dev):
+Install [containerlab](https://containerlab.dev) 0.83.0 or newer (0.82.0 is the first release that
+leaves out the TLS 1.3 cipher `tls-aes128-ccm8-sha256`, which SR OS 26.7 and newer reject):
 
 ```bash
-bash -c "$(curl -sL https://get.containerlab.dev)"
+bash -c "$(curl -sL https://get.containerlab.dev)" -- -v 0.83.0
 ```
 
 ### 6. Deploy the lab and run the integration tests

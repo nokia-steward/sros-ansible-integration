@@ -47,4 +47,4 @@ Detailed tutorials are available on the [Nokia Network Developer Portal](https:/
 
 ---
 
-**Collection version:** 2.2.0 · **License:** BSD 3-Clause · **Ansible Core:** 2.20+ (2.22 recommended) · **Python:** 3.12+ (3.13 recommended)
+**Collection version:** 2.2.1 · **License:** BSD 3-Clause · **Ansible Core:** 2.20+ (2.22 recommended) · **Python:** 3.12+ (3.13 recommended)
