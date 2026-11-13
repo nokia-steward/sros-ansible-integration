@@ -42,7 +42,7 @@ LAB_CAPABILITIES = ("srlinux", "srsim")
 NAME_RE = re.compile(r"^[a-z][a-z0-9_]*$")
 SUITE_RE = re.compile(r"^[a-z][a-z0-9-]*$")
 ENV_RE = re.compile(r"^[A-Z][A-Z0-9_]*$")
-VALUE_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._+-]*$")
+VALUE_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._+/-]*$")
 APT_RE = re.compile(r"^[a-z0-9][a-z0-9.+-]*$")
 RESERVED_ENV = ("PATH", "HOME", "STEWARD_SUITE", "STEWARD_CASE")
 
@@ -215,7 +215,7 @@ def validate(data) -> list[str]:
                 if isinstance(value, float):
                     errors.append(f"{cwhere}.{key}: quote versions: YAML read this as the number {value}")
                 elif isinstance(value, bool) or not isinstance(value, (str, int)) or not VALUE_RE.match(str(value)):
-                    errors.append(f"{cwhere}.{key}: use letters, digits, '.', '_', '+' or '-'")
+                    errors.append(f"{cwhere}.{key}: use letters, digits, '.', '_', '+', '/' or '-'")
             values = {k: v for k, v in case.items() if k != "experimental"}
             if values in seen_cases:
                 errors.append(f"{cwhere}: duplicate case")
