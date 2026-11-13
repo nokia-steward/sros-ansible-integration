@@ -38,7 +38,7 @@ Add an entry to `tests/sanity/ignore-<ansible-core>.txt` only for findings that 
 
 ## Integration tests
 
-The integration tests run the playbooks of `tests/playbooks.yml` against SR OS (SR-SIM) containers deployed with [containerlab](https://containerlab.dev). They need Docker, the `nokia_srsim` image and a license file at `tests/license.txt`.
+The integration tests run the playbooks of `tests/playbooks.yml` against SR OS (SR-SIM) containers deployed with [containerlab](https://containerlab.dev). They need Docker, containerlab 0.83.0 or newer, the `nokia_srsim` image and a license file at `tests/license.txt`. Older containerlab releases render the TLS 1.3 cipher `tls-aes128-ccm8-sha256`, which SR OS 26.7 and newer reject, and the node then starts with its default configuration.
 
 ```bash
 make test-integration-sros    # deploy, run all playbooks, destroy

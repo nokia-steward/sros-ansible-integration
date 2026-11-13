@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.1]
+### Changed
+- Integration tests need containerlab 0.83.0 or newer, as installed by GitHub CI and nokia-steward-validator. Older releases render the TLS 1.3 cipher `tls-aes128-ccm8-sha256`, which SR OS 26.7 and newer reject; the node then starts with its default configuration.
+
 ## [2.2.0]
 ### Changed
 - Pinned to officially supported Ansible/Python releases, which still receive security (CVE) fixes: `ansible-core` 2.20+ and Python 3.12+, recommended 2.22 with Python 3.13. Older releases are best-effort only, see [Support](https://nokia-steward.github.io/sros-ansible-integration/support/#validated-in-ci).
@@ -62,6 +66,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 ### Fixed
 - Updated playbooks for compatibility with latest Ansible releases
 
+[2.2.1]: https://github.com/nokia-steward/sros-ansible-integration/compare/2.2.0...2.2.1
 [2.2.0]: https://github.com/nokia-steward/sros-ansible-integration/compare/2.1.1...2.2.0
 [2.1.1]: https://github.com/nokia-steward/sros-ansible-integration/releases/tag/2.1.1
 [2.1.0]: https://github.com/nokia-steward/sros-ansible-integration/releases/tag/2.1.0
