@@ -2,6 +2,8 @@
 
 The playbooks under `tests/playbooks/` are the integration test suite. Shipped workflows live in `../playbooks/` at the collection root. Categories are defined in `playbooks.yml`. The runner `run.sh` deploys a [containerlab](https://containerlab.dev) topology (`topo.clab.yml`), generates inventory under `clab-ansible/`, and runs the playbooks against Nokia SR-SIM.
 
+Each category names the platforms it applies to (`hosts`), the same pattern as the hosts of its playbooks: `all`, `nokia_srsim_classic` (the classic-mode node) or `nokia_srsim` (the model-driven node). `platforms.yml` declares these groups and `ansible.cfg` sets `host_pattern_mismatch = error`, so a playbook whose hosts name a misspelled group fails. A category with no matching host is reported as skipped. The first play name of a playbook is its test title in the results.
+
 ## Prerequisites
 
 - Docker and containerlab 0.83.0 or newer (older releases render a TLS 1.3 cipher that SR OS 26.7 and newer reject)
@@ -11,7 +13,7 @@ The playbooks under `tests/playbooks/` are the integration test suite. Shipped w
 ## Quick run
 
 ```bash
-make test-integration-sros        # deploy, run all playbooks, destroy
+make test-integration        # deploy, run all playbooks, destroy
 ```
 
 Or step by step:
@@ -23,7 +25,7 @@ cd tests
 ./run.sh destroy
 ```
 
-`SROS_VERSION=<tag> ./run.sh deploy` overrides the image tag. `./run.sh help` lists all options.
+`SROS_VERSION=<tag> ./run.sh deploy` overrides the image tag, `SROS_IMAGE=<path>` the image path (`make test-integration` takes them as `SROS_VERSION` and `REGISTRY`). `./run.sh help` lists all options.
 Results: `tests/output/junit/<suite>.xml` (one testcase per playbook) and `tests/output/logs/`.
 
 ## Local inventory (no containerlab)

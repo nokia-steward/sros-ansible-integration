@@ -80,7 +80,7 @@ cd tests
 ./run.sh destroy
 ```
 
-`make test-integration-sros` (or `tests/run.sh integration`) runs deploy, all playbooks and destroy
+`make test-integration` (or `tests/run.sh integration`) runs deploy, all playbooks and destroy
 in one step. Results are written to `tests/output/junit/` and the playbook logs to `tests/output/logs/`.
 
 ✅ **Tip:**
@@ -100,7 +100,7 @@ Follow Ansible and Python best practices:
 
   * `make ci` (Python syntax, playbook syntax, flake8, pylint, yamllint, ansible-lint, bandit, pip-audit)
   * `make sanity` (`ansible-test sanity`, including pep8, pylint and validate-modules)
-  * `make test-integration-sros` (containerlab integration tests)
+  * `make test-integration` (containerlab integration tests)
 
 ---
 
@@ -126,7 +126,7 @@ We welcome all contributions — from small fixes to major enhancements. Whether
 
 Before submitting a pull request:
 
-* Run `make sanity` and the integration tests (`make test-integration-sros`)
+* Run `make sanity` and the integration tests (`make test-integration`)
 * Follow [PEP 8](https://peps.python.org/pep-0008/) and Ansible plugin guidelines
 * Ensure changes are documented and clearly commented
 * Update or add integration tests where relevant

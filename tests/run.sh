@@ -28,8 +28,10 @@
 #      output/logs/<suite>/*.log     full ansible-playbook output, one file per playbook
 #      output/logs/<suite>/nodes/    container logs of the lab nodes (integration only)
 #
-#    playbooks.yml lists categories; a category names the inventory group it needs
-#    (hosts, default all). A category whose group has no hosts is reported as skipped.
+#    playbooks.yml lists categories. hosts is an Ansible host pattern: all (every vendor),
+#    or a comma-separated list of platform groups (nokia_srsim, nokia_srlinux). A category
+#    with no matching host is reported as skipped. The first play name is the test title
+#    in the JUnit output.
 #    Playbook entries may carry ansible-playbook options, e.g. "playbooks/x.yml --diff".
 #
 #    SRSIM_LICENSE_FILE, when set, is copied to ./license.txt for the topology and removed
@@ -90,8 +92,27 @@ yaml_playbooks() {
 
 host_count() {
   local count
+  # Comma and colon both mean "any of these groups". A space after a comma is fine.
   count="$(ansible "$1" --list-hosts 2>/dev/null | sed -n 's/^ *hosts (\([0-9]*\)):.*/\1/p')"
   echo "${count:-0}"
+}
+
+# The first play's name, shown as the test title. Empty when the file has none.
+play_title() {
+  local file="${1%% *}"
+  [[ -f "$file" ]] || return 0
+  python3 -c '
+import sys, yaml
+try:
+    data = yaml.safe_load(open(sys.argv[1]))
+except Exception:
+    raise SystemExit(0)
+if isinstance(data, list):
+    for play in data:
+        if isinstance(play, dict) and play.get("name"):
+            print(play["name"])
+            break
+' "$file" 2>/dev/null || true
 }
 
 # --- Results -----------------------------------------------------------------
@@ -115,7 +136,7 @@ xml_escape() {
 
 write_junit() {
   local junit="$OUTPUT_DIR/junit/$SUITE.xml"
-  local total=0 failures=0 skipped=0 entry category name status seconds message
+  local total=0 failures=0 skipped=0 entry category name status seconds message title
   mkdir -p "$OUTPUT_DIR/junit"
   for entry in ${RESULTS[@]+"${RESULTS[@]}"}; do
     IFS='|' read -r category name status seconds message <<< "$entry"
@@ -128,8 +149,11 @@ write_junit() {
     echo "<testsuites><testsuite name=\"$(xml_escape "$SUITE")\" tests=\"$total\" failures=\"$failures\" skipped=\"$skipped\">"
     for entry in ${RESULTS[@]+"${RESULTS[@]}"}; do
       IFS='|' read -r category name status seconds message <<< "$entry"
-      printf '  <testcase classname="%s" name="%s" time="%s">' \
+      title="$(play_title "$name")"
+      printf '  <testcase classname="%s" name="%s" time="%s"' \
         "$(xml_escape "$category")" "$(xml_escape "$name")" "$seconds"
+      [[ -n "$title" ]] && printf ' title="%s"' "$(xml_escape "$title")"
+      printf '>'
       case "$status" in
         failed) printf '<failure message="%s"/>' "$(xml_escape "$message")" ;;
         skipped) printf '<skipped message="%s"/>' "$(xml_escape "$message")" ;;

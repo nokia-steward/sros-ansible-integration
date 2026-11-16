@@ -1,0 +1,9 @@
+---
+# Platform groups the integration tests name (tests/playbooks.yml and the hosts of each
+# playbook). The containerlab inventory has only the nodes of the deployed lab; declaring
+# every group here lets a play name a platform the lab lacks, which then has no hosts,
+# instead of failing on host_pattern_mismatch.
+all:
+  children:
+    nokia_srsim:
+    nokia_srsim_classic:

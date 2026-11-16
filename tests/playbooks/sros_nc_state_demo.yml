@@ -3,7 +3,8 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 ---
-- hosts: nokia_srsim
+- name: NETCONF · get state
+  hosts: nokia_srsim
   gather_facts: No
 
   tasks:

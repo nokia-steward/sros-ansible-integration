@@ -3,7 +3,8 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 ---
-- hosts: nokia_srsim_classic
+- name: classic CLI · config and backup
+  hosts: nokia_srsim_classic
   gather_facts: No
 
   tasks:

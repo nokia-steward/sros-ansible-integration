@@ -38,10 +38,13 @@ Add an entry to `tests/sanity/ignore-<ansible-core>.txt` only for findings that 
 
 ## Integration tests
 
-The integration tests run the playbooks of `tests/playbooks.yml` against SR OS (SR-SIM) containers deployed with [containerlab](https://containerlab.dev). They need Docker, containerlab 0.83.0 or newer, the `nokia_srsim` image and a license file at `tests/license.txt`. Older containerlab releases render the TLS 1.3 cipher `tls-aes128-ccm8-sha256`, which SR OS 26.7 and newer reject, and the node then starts with its default configuration.
+The integration tests run the playbooks of `tests/playbooks.yml` against SR OS (SR-SIM) containers deployed with [containerlab](https://containerlab.dev): `tests/topo.clab.yml` has one node in classic and one in model-driven configuration mode. They need Docker, containerlab 0.83.0 or newer, the `nokia_srsim` image and a license file at `tests/license.txt`. Older containerlab releases render the TLS 1.3 cipher `tls-aes128-ccm8-sha256`, which SR OS 26.7 and newer reject, and the node then starts with its default configuration.
+
+Each category in `tests/playbooks.yml` names the platforms it applies to, the same host pattern as the hosts of its playbooks: `all`, or the group of one configuration mode. containerlab puts a classic-mode node in `nokia_srsim_classic` and a model-driven node in `nokia_srsim`. A category with no matching host in the lab is reported as skipped. The platform groups are declared in `tests/platforms.yml`, and `tests/ansible.cfg` sets `host_pattern_mismatch = error`, so a playbook whose hosts name a misspelled group fails instead of quietly matching no host. The first play name of each playbook is the test title in the results.
 
 ```bash
-make test-integration-sros    # deploy, run all playbooks, destroy
+make test-integration         # deploy, run all playbooks, destroy
+make test-integration SROS_VERSION=26.10.R1 REGISTRY=registry.srlinux.dev/pub/nokia_srsim
 
 cd tests
 ./run.sh deploy               # or step by step
@@ -49,7 +52,7 @@ cd tests
 ./run.sh destroy
 ```
 
-Optional `SROS_VERSION` overrides the image tag in `tests/topo.clab.yml`. `./run.sh help` lists all options. Results go to `tests/output/junit/` (one testcase per playbook) and the playbook logs to `tests/output/logs/`.
+`SROS_VERSION` and `REGISTRY` (the image path without the tag) override the image in `tests/topo.clab.yml`. `./run.sh help` lists all options. Results go to `tests/output/junit/` (one testcase per playbook) and the playbook logs to `tests/output/logs/`.
 
 ## Continuous integration
 

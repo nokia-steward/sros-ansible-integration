@@ -3,7 +3,8 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 ---
-- hosts: nokia_srsim
+- name: MD-CLI · commands and CLI mode switch
+  hosts: nokia_srsim
   gather_facts: No
 
   tasks:
