@@ -1,0 +1,56 @@
+# Copyright 2025 Nokia
+# Licensed under the BSD 3-Clause License.
+# SPDX-License-Identifier: BSD-3-Clause
+
+---
+# Commands that classic and MD-CLI both understand. What differs per mode lives in
+# sros_classic_cli_command_demo.yml and sros_mdcli_command_demo.yml.
+- name: CLI · commands
+  hosts: all
+  gather_facts: No
+
+  tasks:
+  - name: get system information
+    ansible.netcommon.cli_command:
+      command: show system information
+    register: output1
+
+  - name: show version
+    ansible.netcommon.cli_command:
+      command: show version
+    register: output2
+
+  - name: show bof
+    ansible.netcommon.cli_command:
+      command: show bof
+    register: output3
+
+  - name: telemetry on-change paths
+    ansible.netcommon.cli_command:
+      command: tools dump system telemetry on-change-paths
+    register: output4
+
+  - name: telemetry expand wildcard path
+    ansible.netcommon.cli_command:
+      command: '/tools dump system telemetry expand-wildcard-path "/state/.../oper-state"'
+    register: output5
+
+  - name: reboot node (abort)
+    ansible.netcommon.cli_command:
+      command: admin reboot
+      prompt:
+        - "Are you sure you want to reboot (y/n)?"
+      answer:
+        - 'n'
+    register: output6
+
+  - name: display output
+    debug:
+      msg: |
+        {{output1.stdout}}
+        {{output2.stdout}}
+        {{output3.stdout}}
+        {{output4.stdout}}
+        {{output5.stdout}}
+        {{output6.stdout}}
+...

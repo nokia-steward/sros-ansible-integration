@@ -30,17 +30,18 @@ The repository contains sample playbooks in [`tests/playbooks/`](https://github.
 | [sros_nc_state_demo.yml](https://github.com/nokia-steward/sros-ansible-integration/blob/master/tests/playbooks/sros_nc_state_demo.yml) | Read system state with `ansible.netcommon.netconf_get` |
 | [sros_nc_device_info.yml](https://github.com/nokia-steward/sros-ansible-integration/blob/master/tests/playbooks/sros_nc_device_info.yml) | `nokia.sros.device_info` over NETCONF |
 
-### Device Info
+### MD-CLI and classic CLI
 
 | Playbook | Description |
 | --- | --- |
 | [sros_cli_device_info.yml](https://github.com/nokia-steward/sros-ansible-integration/blob/master/tests/playbooks/sros_cli_device_info.yml) | `nokia.sros.device_info` over CLI, for MD-CLI and classic CLI routers |
+| [sros_cli_command_demo.yml](https://github.com/nokia-steward/sros-ansible-integration/blob/master/tests/playbooks/sros_cli_command_demo.yml) | `cli_command` with the commands both CLI engines understand, including telemetry dumps and a prompt |
 
 ### MD-CLI
 
 | Playbook | Description |
 | --- | --- |
-| [sros_mdcli_command_demo.yml](https://github.com/nokia-steward/sros-ansible-integration/blob/master/tests/playbooks/sros_mdcli_command_demo.yml) | `cli_command` with CLI engine switching and prompts |
+| [sros_mdcli_command_demo.yml](https://github.com/nokia-steward/sros-ansible-integration/blob/master/tests/playbooks/sros_mdcli_command_demo.yml) | `cli_command` switching between MD-CLI and classic CLI |
 | [sros_mdcli_config_demo.yml](https://github.com/nokia-steward/sros-ansible-integration/blob/master/tests/playbooks/sros_mdcli_config_demo.yml) | `cli_config` change, rollback and backup |
 | [sros_mdcli_bulk_demo.yml](https://github.com/nokia-steward/sros-ansible-integration/blob/master/tests/playbooks/sros_mdcli_bulk_demo.yml) | Bulk configuration from Jinja2 templates |
 | [sros_mdcli_backup_restore_demo.yml](https://github.com/nokia-steward/sros-ansible-integration/blob/master/tests/playbooks/sros_mdcli_backup_restore_demo.yml) | `cli_backup` and restore with `cli_config` `replace` |
@@ -50,7 +51,7 @@ The repository contains sample playbooks in [`tests/playbooks/`](https://github.
 | Playbook | Description |
 | --- | --- |
 | [sros_classic_cli_commission.yml](https://github.com/nokia-steward/sros-ansible-integration/blob/master/tests/playbooks/sros_classic_cli_commission.yml) | Prepare a classic router (rollback location) |
-| [sros_classic_cli_command_demo.yml](https://github.com/nokia-steward/sros-ansible-integration/blob/master/tests/playbooks/sros_classic_cli_command_demo.yml) | `cli_command` on classic CLI |
+| [sros_classic_cli_command_demo.yml](https://github.com/nokia-steward/sros-ansible-integration/blob/master/tests/playbooks/sros_classic_cli_command_demo.yml) | `cli_command` with `file dir` |
 | [sros_classic_cli_config_demo.yml](https://github.com/nokia-steward/sros-ansible-integration/blob/master/tests/playbooks/sros_classic_cli_config_demo.yml) | `cli_config` change and backup |
 | [sros_classic_cli_backup_restore_demo.yml](https://github.com/nokia-steward/sros-ansible-integration/blob/master/tests/playbooks/sros_classic_cli_backup_restore_demo.yml) | `cli_backup` and restore attempt on classic CLI |
 

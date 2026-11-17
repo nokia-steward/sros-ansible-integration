@@ -34,6 +34,7 @@ categories:
     hosts: all
     playbooks:
       - playbooks/sros_cli_device_info.yml
+      - playbooks/sros_cli_command_demo.yml
 
   netconf:
     description: "NETCONF transport and state validation"
