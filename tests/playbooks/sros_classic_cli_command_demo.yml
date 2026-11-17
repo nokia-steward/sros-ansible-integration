@@ -4,18 +4,25 @@
 
 ---
 # Only what is specific to classic CLI, see sros_cli_command_demo.yml for the common commands.
-- name: classic CLI · files
+# `show bof` is a classic command: MD-CLI rejects it as an unknown element.
+- name: classic CLI · bof and files
   hosts: nokia_srsim_classic
   gather_facts: No
 
   tasks:
+  - name: show bof
+    cli_command:
+      command: show bof
+    register: output1
+
   - name: file dir (classic)
     cli_command:
       command: file dir
-    register: output1
+    register: output2
 
   - name: display output
     debug:
       msg: |
         {{output1.stdout}}
+        {{output2.stdout}}
 ...

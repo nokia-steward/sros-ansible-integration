@@ -51,7 +51,7 @@ The repository contains sample playbooks in [`tests/playbooks/`](https://github.
 | Playbook | Description |
 | --- | --- |
 | [sros_classic_cli_commission.yml](https://github.com/nokia-steward/sros-ansible-integration/blob/master/tests/playbooks/sros_classic_cli_commission.yml) | Prepare a classic router (rollback location) |
-| [sros_classic_cli_command_demo.yml](https://github.com/nokia-steward/sros-ansible-integration/blob/master/tests/playbooks/sros_classic_cli_command_demo.yml) | `cli_command` with `file dir` |
+| [sros_classic_cli_command_demo.yml](https://github.com/nokia-steward/sros-ansible-integration/blob/master/tests/playbooks/sros_classic_cli_command_demo.yml) | `cli_command` with `show bof` and `file dir`, classic CLI only |
 | [sros_classic_cli_config_demo.yml](https://github.com/nokia-steward/sros-ansible-integration/blob/master/tests/playbooks/sros_classic_cli_config_demo.yml) | `cli_config` change and backup |
 | [sros_classic_cli_backup_restore_demo.yml](https://github.com/nokia-steward/sros-ansible-integration/blob/master/tests/playbooks/sros_classic_cli_backup_restore_demo.yml) | `cli_backup` and restore attempt on classic CLI |
 

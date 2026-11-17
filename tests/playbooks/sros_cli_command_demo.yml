@@ -20,20 +20,15 @@
       command: show version
     register: output2
 
-  - name: show bof
-    ansible.netcommon.cli_command:
-      command: show bof
-    register: output3
-
   - name: telemetry on-change paths
     ansible.netcommon.cli_command:
       command: tools dump system telemetry on-change-paths
-    register: output4
+    register: output3
 
   - name: telemetry expand wildcard path
     ansible.netcommon.cli_command:
       command: '/tools dump system telemetry expand-wildcard-path "/state/.../oper-state"'
-    register: output5
+    register: output4
 
   - name: reboot node (abort)
     ansible.netcommon.cli_command:
@@ -42,7 +37,7 @@
         - "Are you sure you want to reboot (y/n)?"
       answer:
         - 'n'
-    register: output6
+    register: output5
 
   - name: display output
     debug:
@@ -52,5 +47,4 @@
         {{output3.stdout}}
         {{output4.stdout}}
         {{output5.stdout}}
-        {{output6.stdout}}
 ...
