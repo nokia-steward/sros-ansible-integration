@@ -2,15 +2,15 @@
 # Controller: Python 3.12+, ansible-core 2.20+
 -r requirements.txt
 
-# Galaxy publish validation
-galaxy-importer>=0.4.0
+# Galaxy publish validation (0.4.x pins flake8<7 and ansible-lint<=26.10.1)
+galaxy-importer>=0.4.44
 
 # Code quality
 pylint>=3.0.0
-flake8>=6.0.0
-flake8-bugbear>=24.0.0
+flake8>=6.0.0,<7
+flake8-bugbear>=24.0.0,<26.11.9
 yamllint>=1.35.0
-ansible-lint>=24.0.0
+ansible-lint>=24.0.0,<=26.10.1
 
 # Security (CVE / SAST)
 bandit>=1.7.0

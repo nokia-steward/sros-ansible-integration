@@ -9,6 +9,12 @@ This directory contains the test automation for the SR OS Ansible Collection.
 - `release.yml` - builds, smoke-tests and publishes the collection for a GitHub release
 - `security.yml` - Trivy, bandit and pip-audit
 
+Dependabot (`../dependabot.yml`) proposes pip and GitHub Actions upgrades, grouped into production and
+development (minor and patch version updates) plus a security group, following the same pattern as
+[vscode-netconf](https://github.com/nokia-steward/vscode-netconf/blob/main/.github/dependabot.yml).
+`requirements-dev.txt` upper bounds on `flake8`, `flake8-bugbear`, and `ansible-lint` stay within
+`galaxy-importer` limits until importer releases allow newer stacks.
+
 `ci.yml`, `../scripts/matrix.py`, `../scripts/summary.py` and `../../tests/run.sh` are copied
 unchanged from the nokia-steward test pattern (version 1, maintained in nokia-steward-validator).
 Change the test matrix, not these files.
