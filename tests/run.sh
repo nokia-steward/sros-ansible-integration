@@ -44,6 +44,8 @@
 #
 
 set -euo pipefail
+# bash >= 5.2 expands '&' in ${var//pattern/replacement} to the match, which breaks xml_escape.
+shopt -u patsub_replacement 2>/dev/null || true
 
 cd "$(dirname "$0")"
 

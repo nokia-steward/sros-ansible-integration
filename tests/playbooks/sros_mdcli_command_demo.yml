@@ -13,9 +13,9 @@
       command: show system information
     register: output1
 
-  - name: files list
+  - name: file list
     ansible.netcommon.cli_command:
-      command: files list
+      command: file list
     register: output2
 
   - name: switch mode classic
