@@ -6,12 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ## [2.2.1]
 ### Changed
-- Integration tests need containerlab 0.83.0 or newer, as installed by GitHub CI and nokia-steward-validator. Older releases render the TLS 1.3 cipher `tls-aes128-ccm8-sha256`, which SR OS 26.7 and newer reject; the node then starts with its default configuration.
-- Tests follow the current nokia-steward test pattern, like `nokia.openconfig`: the suite `integration-sros` is now `integration` (`make test-integration`), and each case names the image path it pulls (`registry`, `REGISTRY` for make). The tested SR OS releases are 25.10.R1 and 26.10.R1; the topologies default to 25.10.R1 (was 25.7.R2).
-- Each category of `tests/playbooks.yml` names the platforms it applies to: `all`, `nokia_srsim_classic` (classic configuration mode) or `nokia_srsim` (model-driven), the same pattern as the hosts of its playbooks. `tests/platforms.yml` declares the platform groups and `tests/ansible.cfg` sets `host_pattern_mismatch = error`, so a playbook whose hosts name a misspelled group fails. Every test playbook has a play name, which is its test title in the results.
-- Integration tests run each configuration mode in its own single-node lab, `tests/classic.clab.yml` and `tests/md.clab.yml`, replacing the two-node `tests/topo.clab.yml`; `make test-integration` picks the lab from `SROS_CONFIG_MODE` (`classic` or `md`, default `md`). The matrix has a case per SR OS release and mode. The classic node sets `config-mode: classic`: containerlab 0.80 and newer ignore the `CLAB_SROS_CONFIG_MODE` environment variable, so the classic node had started in model-driven mode with its classic configuration rejected, outside the `nokia_srsim_classic` Ansible group.
-
-- The `cli_command` test playbook is split: `sros_cli_command_demo.yml` runs the commands both CLI engines understand on every node, `sros_classic_cli_command_demo.yml` runs `show bof` and `file dir` (MD-CLI rejects `show bof`), and `sros_mdcli_command_demo.yml` switches engines (`edit-config read-only`, `quit-config`, then classic `show bof` and `file dir`, then `file list` back in MD-CLI). `show bof` replaces `show boot-messages`, whose output contains a `MINOR:` line that the terminal plugin treats as an error.
+- Integration tests need containerlab 0.83.0 or newer. Older releases render a TLS cipher that SR OS 26.7 and newer reject, so the node starts with its default configuration.
+- The integration suite is `integration` (`make test-integration`), tested on SR OS 25.10.R1 and 26.10.R1. Topologies default to 25.10.R1 (was 25.7.R2).
+- Classic and model-driven modes are separate cases, each in its own lab (`tests/classic.clab.yml`, `tests/md.clab.yml`), chosen with `SROS_CONFIG_MODE`. The classic lab sets `config-mode: classic`.
+- The `cli_command` playbooks are split by engine: commands both understand, classic-only `show bof` and `file dir`, and an MD-CLI playbook that switches to classic and back.
 
 ## [2.2.0]
 ### Changed
