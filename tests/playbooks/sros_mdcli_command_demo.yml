@@ -13,25 +13,30 @@
       command: show system information
     register: output1
 
+  - name: files list
+    ansible.netcommon.cli_command:
+      command: files list
+    register: output2
+
   - name: switch mode classic
     ansible.netcommon.cli_command:
       command: /!classic-cli
-    register: output2
-
-  - name: file dir (classic)
-    ansible.netcommon.cli_command:
-      command: file dir
     register: output3
+
+  - name: show boot-messages (classic)
+    ansible.netcommon.cli_command:
+      command: show boot-messages
+    register: output4
 
   - name: switch mode md-cli
     ansible.netcommon.cli_command:
       command: /!md-cli
-    register: output4
-
-  - name: show version
-    ansible.netcommon.cli_command:
-      command: show version
     register: output5
+
+  - name: show boot-messages (md-cli)
+    ansible.netcommon.cli_command:
+      command: show boot-messages
+    register: output6
 
   - name: reboot node (abort)
     ansible.netcommon.cli_command:
@@ -40,7 +45,7 @@
         - "Are you sure you want to reboot (y/n)?"
       answer:
         - 'n'
-    register: output6
+    register: output7
 
   - name: display system information
     debug:
@@ -51,4 +56,5 @@
         {{output4.stdout}}
         {{output5.stdout}}
         {{output6.stdout}}
+        {{output7.stdout}}
 ...

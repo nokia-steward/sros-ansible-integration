@@ -20,17 +20,19 @@ Change the test matrix, not these files.
 where applicable. To add a version, add a row under `cases`. `make test` runs lab-free suites
 locally.
 
-The `integration` suite has one case per SR OS release. Each case deploys `tests/topo.clab.yml`,
-one node in classic and one in model-driven configuration mode, and runs the one test list,
-`tests/playbooks.yml`. Each category there names the platforms it applies to (`hosts`, platform
-groups declared in `tests/platforms.yml`); a category with no host in the lab is reported as
+The `integration` suite has one case per SR OS release and configuration mode (`config_mode`:
+`classic` or `md`). Each case deploys a single-node lab, `tests/classic.clab.yml` or
+`tests/md.clab.yml`, and runs the one test list, `tests/playbooks.yml`. Each category there names
+the platforms it applies to (`hosts`, platform groups declared in `tests/platforms.yml`); a
+category with no host in the lab, such as the classic categories in the md lab, is reported as
 skipped. Each case names the image path it pulls, without the tag, as `registry`. The suite needs
-containerlab 0.83.0 or newer.
+containerlab 0.83.0 or newer. The results table has one column per case, named from the `labels`
+of `config_mode` and the release: `Classic SROS 25.10`, `MD SROS 25.10`.
 
 ## Where the SR OS cases run
 
 `integration` needs the SR OS simulator license. GitHub runs it only when the repository has an
 `SRSIM_LICENSE` secret. Otherwise the job summary lists those cases as "not run on GitHub, needs
 srsim", and a maintainer runs them with nokia-steward-validator, which posts one table of
-results, a column per SR OS release, to the pull request (after the `ready-for-validation` label;
+results, a column per case, to the pull request (after the `ready-for-validation` label;
 the result shows as `validation-passed` or `validation-failed`) or to an issue for `master`.

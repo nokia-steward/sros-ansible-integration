@@ -60,9 +60,9 @@ Categories are defined in [`tests/playbooks.yml`](https://github.com/nokia-stewa
 
 ```bash
 cd tests
-./run.sh deploy
+./run.sh deploy --topo md.clab.yml
 ./run.sh run --quiet
-./run.sh destroy
+./run.sh destroy --topo md.clab.yml
 ```
 
 The default `tests/ansible.cfg` uses inventory generated under `tests/clab-ansible/` on deploy. For your own routers, copy [`tests/inventory.example.yml`](https://github.com/nokia-steward/sros-ansible-integration/blob/master/tests/inventory.example.yml) to `tests/inventory.yml`.

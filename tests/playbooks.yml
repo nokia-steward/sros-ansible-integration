@@ -1,13 +1,14 @@
 ---
 # Integration test categories used by run.sh (suite integration). Each case of the suite
-# deploys tests/topo.clab.yml, one SR OS node in classic and one in model-driven (MD)
-# configuration mode, and runs this whole list against it.
+# deploys one single-node lab, tests/classic.clab.yml or tests/md.clab.yml (the config_mode of
+# the case), and runs this whole list against it.
 #
 # hosts: the platforms a category applies to, the same pattern as the hosts of its
 #        playbooks. `all` runs on every node. containerlab puts a classic-mode node in
 #        nokia_srsim_classic and a model-driven node in nokia_srsim. A category with no
-#        matching host in the lab is reported as SKIPPED. To test another platform, add
-#        its group to tests/platforms.yml.
+#        matching host in the lab is reported as SKIPPED: the classic categories in the md
+#        lab and the other way round. To test another platform, add its group to
+#        tests/platforms.yml.
 
 categories:
   classic-cli:

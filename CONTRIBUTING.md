@@ -75,13 +75,13 @@ bash -c "$(curl -sL https://get.containerlab.dev)" -- -v 0.83.0
 
 ```bash
 cd tests
-./run.sh deploy
+./run.sh deploy --topo md.clab.yml
 ./run.sh run --quiet
-./run.sh destroy
+./run.sh destroy --topo md.clab.yml
 ```
 
-`make test-integration` (or `tests/run.sh integration`) runs deploy, all playbooks and destroy
-in one step. Results are written to `tests/output/junit/` and the playbook logs to `tests/output/logs/`.
+`make test-integration` (or `tests/run.sh integration --topo md.clab.yml`) runs deploy, all playbooks
+and destroy in one step; `SROS_CONFIG_MODE=classic` runs the classic-mode lab instead of the md lab. Results are written to `tests/output/junit/` and the playbook logs to `tests/output/logs/`.
 
 ✅ **Tip:**
 This workflow is consistent across Linux, macOS, and BSD systems. Only the package-installation commands may vary.

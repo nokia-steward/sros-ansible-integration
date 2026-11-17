@@ -6,22 +6,24 @@
 # that it supports. ansible-core devel is an early warning and never blocks a merge.
 #
 # sanity: ansible-test sanity, one row per ansible-core and Python pair.
-# integration: one case per SR OS release. Each case deploys tests/topo.clab.yml (an SR OS node
-# in classic and one in model-driven configuration mode) and runs the one test list,
-# tests/playbooks.yml. SR OS releases: the x.10 releases, today 25.10 and 26.10. From 2027: the
-# x.10 releases of the previous two years and the latest release of the current year (for example
-# 25.10, 26.10 and 27.3). Each case pairs one SR OS release with one controller pair and names the
-# image path it pulls (registry).
+# integration: one case per SR OS release and configuration mode (config_mode). Each case deploys
+# a single-node lab, tests/classic.clab.yml or tests/md.clab.yml, and runs the one test list,
+# tests/playbooks.yml; the categories of the other mode are skipped. SR OS releases: the x.10
+# releases, today 25.10 and 26.10. From 2027: the x.10 releases of the previous two years and the
+# latest release of the current year (for example 25.10, 26.10 and 27.3). Each case pairs one SR OS
+# release with one controller pair and names the image path it pulls (registry). The labels name
+# the modes in the results table: Classic SROS 25.10, MD SROS 25.10.
 version: 1
 
 environment:
   apt: [libssh-dev]
 
 inputs:
-  python:   {toolchain: python}
-  ansible:  {env: ANSIBLE_VERSION}
-  sros:     {env: SROS_VERSION, requires: [srsim]}
-  registry: {env: REGISTRY}
+  python:      {toolchain: python}
+  ansible:     {env: ANSIBLE_VERSION}
+  sros:        {env: SROS_VERSION, requires: [srsim]}
+  config_mode: {env: SROS_CONFIG_MODE, labels: {classic: Classic, md: MD}}
+  registry:    {env: REGISTRY}
 
 suites:
   sanity:
@@ -38,5 +40,7 @@ suites:
     run: make test-integration
     timeout_minutes: 45
     cases:
-      - {python: '3.14', ansible: '2.21', sros: '25.10.R1', registry: 'registry.srlinux.dev/pub/nokia_srsim'}
-      - {python: '3.13', ansible: '2.22', sros: '26.10.R1', registry: 'registry.srlinux.dev/pub/nokia_srsim'}
+      - {python: '3.14', ansible: '2.21', sros: '25.10.R1', config_mode: classic, registry: 'registry.srlinux.dev/pub/nokia_srsim'}
+      - {python: '3.14', ansible: '2.21', sros: '25.10.R1', config_mode: md, registry: 'registry.srlinux.dev/pub/nokia_srsim'}
+      - {python: '3.13', ansible: '2.22', sros: '26.10.R1', config_mode: classic, registry: 'registry.srlinux.dev/pub/nokia_srsim'}
+      - {python: '3.13', ansible: '2.22', sros: '26.10.R1', config_mode: md, registry: 'registry.srlinux.dev/pub/nokia_srsim'}
