@@ -134,4 +134,4 @@ It works with both CLI and NETCONF connections.
 
 ---
 
-**Version:** 2.2.0 · **License:** BSD 3-Clause
+**Version:** 2.2.1 · **License:** BSD 3-Clause

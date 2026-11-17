@@ -1,6 +1,6 @@
 .PHONY: help install-dev sanity build install import-galaxy validate validate-syntax validate-ansible \
 	lint flake8 pylint yamllint ansible-lint security bandit audit ci test docs docs-serve clean \
-	test-setup test-sanity test-integration-sros
+	test-setup test-sanity test-integration
 
 # Controller: Python 3.12+, ansible-core 2.20+
 PYTHON ?= python3
@@ -10,12 +10,16 @@ BUILD_DIR := .build
 SANITY_ROOT := $(BUILD_DIR)/ansible_collections/nokia/sros
 SANITY_ARGS ?=
 JUNIT_DIR := tests/output/junit
-# Test inputs from .github/test-matrix.yml (SROS_VERSION defaults in tests/topo.clab.yml)
+# Test inputs from .github/test-matrix.yml. SROS_CONFIG_MODE (classic or md) picks the lab,
+# tests/<mode>.clab.yml. REGISTRY is the image path of the lab node, without the tag.
 ANSIBLE_VERSION ?= 2.22
+SROS_VERSION ?= 25.10.R1
+SROS_CONFIG_MODE ?= md
+SROS_REGISTRY = $(or $(REGISTRY),registry.srlinux.dev/pub/nokia_srsim)
 
 PLUGIN_PY := $(wildcard plugins/cliconf/*.py plugins/netconf/*.py plugins/terminal/*.py plugins/modules/*.py)
 YAML_LINT := galaxy.yml meta/runtime.yml meta/execution-environment.yml \
-	playbooks/*.yml playbooks/examples/inventory.yml tests/playbooks.yml tests/inventory.example.yml
+	playbooks/*.yml playbooks/examples/inventory.yml tests/playbooks.yml tests/platforms.yml tests/inventory.example.yml
 
 help:
 	@echo "SR OS Ansible collection — common tasks"
@@ -33,7 +37,8 @@ help:
 	@echo "  Test suites of .github/test-matrix.yml (CI and nokia-steward-validator):"
 	@echo "  make test-setup       Install ansible-core \$$ANSIBLE_VERSION and the collections"
 	@echo "  make test-sanity      ansible-test sanity, JUnit in $(JUNIT_DIR)"
-	@echo "  make test-integration-sros   Containerlab SR OS (\$$SROS_VERSION), JUnit in $(JUNIT_DIR)"
+	@echo "  make test-integration Containerlab, tests/playbooks.yml: SR OS \$$SROS_VERSION from \$$REGISTRY in"
+	@echo "                        \$$SROS_CONFIG_MODE (classic or md) mode, JUnit in $(JUNIT_DIR)"
 	@echo "  make docs             Generate reference and build MkDocs (site/)"
 	@echo "  make docs-serve       Serve docs at http://127.0.0.1:8000"
 	@echo "  make clean            Remove build artifacts and reports"
@@ -130,8 +135,11 @@ test-sanity:
 	if [ -d $(SANITY_ROOT)/tests/output/junit ]; then cp -R $(SANITY_ROOT)/tests/output/junit/. $(JUNIT_DIR)/; fi; \
 	exit $$status
 
-test-integration-sros:
-	tests/run.sh integration --topo topo.clab.yml --suite integration-sros
+test-integration:
+	@test -f tests/$(SROS_CONFIG_MODE).clab.yml || { echo "SROS_CONFIG_MODE must be classic or md, not '$(SROS_CONFIG_MODE)'" >&2; exit 1; }
+	@echo "Lab image: $(SROS_REGISTRY):$(SROS_VERSION), $(SROS_CONFIG_MODE) mode"
+	SROS_IMAGE="$(SROS_REGISTRY)" SROS_VERSION="$(SROS_VERSION)" \
+		tests/run.sh integration --topo $(SROS_CONFIG_MODE).clab.yml --suite integration
 
 docs:
 	$(PYTHON) tools/generate_docs.py

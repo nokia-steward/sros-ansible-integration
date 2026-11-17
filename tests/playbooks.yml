@@ -1,6 +1,19 @@
+---
+# Integration test categories used by run.sh (suite integration). Each case of the suite
+# deploys one single-node lab, tests/classic.clab.yml or tests/md.clab.yml (the config_mode of
+# the case), and runs this whole list against it.
+#
+# hosts: the platforms a category applies to, the same pattern as the hosts of its
+#        playbooks. `all` runs on every node. containerlab puts a classic-mode node in
+#        nokia_srsim_classic and a model-driven node in nokia_srsim. A category with no
+#        matching host in the lab is reported as SKIPPED: the classic categories in the md
+#        lab and the other way round. To test another platform, add its group to
+#        tests/platforms.yml.
+
 categories:
   classic-cli:
     description: "Test cases using classic CLI mode"
+    hosts: nokia_srsim_classic
     playbooks:
       - playbooks/sros_classic_cli_commission.yml
       - playbooks/sros_classic_cli_config_demo.yml --diff
@@ -9,6 +22,7 @@ categories:
 
   md-cli:
     description: "Test cases using mode-driven CLI mode"
+    hosts: nokia_srsim
     playbooks:
       - playbooks/sros_mdcli_config_demo.yml --diff
       - playbooks/sros_mdcli_backup_restore_demo.yml
@@ -17,11 +31,14 @@ categories:
 
   common-cli:
     description: "Common CLI test cases (classic and md)"
+    hosts: all
     playbooks:
       - playbooks/sros_cli_device_info.yml
+      - playbooks/sros_cli_command_demo.yml
 
   netconf:
     description: "NETCONF transport and state validation"
+    hosts: nokia_srsim
     playbooks:
       - playbooks/sros_nc_device_info.yml
       - playbooks/sros_nc_state_demo.yml

@@ -3,45 +3,49 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 ---
-- hosts: nokia_srsim
+# Only what is specific to MD-CLI, see sros_cli_command_demo.yml for the common commands.
+# The sequence proves the CLI engine switch: MD commands, then classic commands, then MD again.
+- name: MD-CLI · CLI mode switch
+  hosts: nokia_srsim
   gather_facts: No
 
   tasks:
-  - name: get system information
+  - name: edit-config read-only
     ansible.netcommon.cli_command:
-      command: show system information
+      command: edit-config read-only
     register: output1
+
+  - name: quit-config
+    ansible.netcommon.cli_command:
+      command: quit-config
+    register: output2
 
   - name: switch mode classic
     ansible.netcommon.cli_command:
       command: /!classic-cli
-    register: output2
+    register: output3
+
+  - name: show bof (classic)
+    ansible.netcommon.cli_command:
+      command: show bof
+    register: output4
 
   - name: file dir (classic)
     ansible.netcommon.cli_command:
       command: file dir
-    register: output3
+    register: output5
 
   - name: switch mode md-cli
     ansible.netcommon.cli_command:
       command: /!md-cli
-    register: output4
-
-  - name: show version
-    ansible.netcommon.cli_command:
-      command: show version
-    register: output5
-
-  - name: reboot node (abort)
-    ansible.netcommon.cli_command:
-      command: admin reboot
-      prompt:
-        - "Are you sure you want to reboot (y/n)?"
-      answer:
-        - 'n'
     register: output6
 
-  - name: display system information
+  - name: file list (md-cli)
+    ansible.netcommon.cli_command:
+      command: file list
+    register: output7
+
+  - name: display output
     debug:
       msg: |
         {{output1.stdout}}
@@ -50,4 +54,5 @@
         {{output4.stdout}}
         {{output5.stdout}}
         {{output6.stdout}}
+        {{output7.stdout}}
 ...

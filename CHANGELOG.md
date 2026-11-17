@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.1]
+### Changed
+- Integration tests need containerlab 0.83.0 or newer. Older releases render a TLS cipher that SR OS 26.7 and newer reject, so the node starts with its default configuration.
+- The integration suite is `integration` (`make test-integration`), tested on SR OS 25.10.R1 and 26.10.R1. Topologies default to 25.10.R1 (was 25.7.R2).
+- Classic and model-driven modes are separate cases, each in its own lab (`tests/classic.clab.yml`, `tests/md.clab.yml`), chosen with `SROS_CONFIG_MODE`. The classic lab sets `config-mode: classic`.
+- The `cli_command` playbooks are split by engine: commands both understand, classic-only `show bof` and `file dir`, and an MD-CLI playbook that switches to classic and back.
+
 ## [2.2.0]
 ### Changed
 - Pinned to officially supported Ansible/Python releases, which still receive security (CVE) fixes: `ansible-core` 2.20+ and Python 3.12+, recommended 2.22 with Python 3.13. Older releases are best-effort only, see [Support](https://nokia-steward.github.io/sros-ansible-integration/support/#validated-in-ci).
@@ -62,6 +69,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 ### Fixed
 - Updated playbooks for compatibility with latest Ansible releases
 
+[2.2.1]: https://github.com/nokia-steward/sros-ansible-integration/compare/2.2.0...2.2.1
 [2.2.0]: https://github.com/nokia-steward/sros-ansible-integration/compare/2.1.1...2.2.0
 [2.1.1]: https://github.com/nokia-steward/sros-ansible-integration/releases/tag/2.1.1
 [2.1.0]: https://github.com/nokia-steward/sros-ansible-integration/releases/tag/2.1.0

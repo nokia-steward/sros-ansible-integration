@@ -3,13 +3,16 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 ---
-- hosts: nokia_srsim_classic
+# Only what is specific to classic CLI, see sros_cli_command_demo.yml for the common commands.
+# `show bof` is a classic command: MD-CLI rejects it as an unknown element.
+- name: classic CLI · bof and files
+  hosts: nokia_srsim_classic
   gather_facts: No
 
   tasks:
-  - name: get system information
+  - name: show bof
     cli_command:
-      command: show system information
+      command: show bof
     register: output1
 
   - name: file dir (classic)
@@ -17,25 +20,9 @@
       command: file dir
     register: output2
 
-  - name: show version
-    cli_command:
-      command: show version
-    register: output3
-
-  - name: reboot node (abort)
-    cli_command:
-      command: admin reboot
-      prompt:
-        - "Are you sure you want to reboot (y/n)?"
-      answer:
-        - 'n'
-    register: output4
-
   - name: display output
     debug:
       msg: |
         {{output1.stdout}}
         {{output2.stdout}}
-        {{output3.stdout}}
-        {{output4.stdout}}
 ...

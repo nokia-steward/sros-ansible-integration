@@ -1,29 +1,31 @@
 # Integration tests
 
-The playbooks under `tests/playbooks/` are the integration test suite. Shipped workflows live in `../playbooks/` at the collection root. Categories are defined in `playbooks.yml`. The runner `run.sh` deploys a [containerlab](https://containerlab.dev) topology (`topo.clab.yml`), generates inventory under `clab-ansible/`, and runs the playbooks against Nokia SR-SIM.
+The playbooks under `tests/playbooks/` are the integration test suite. Shipped workflows live in `../playbooks/` at the collection root. Categories are defined in `playbooks.yml`. The runner `run.sh` deploys a [containerlab](https://containerlab.dev) topology (`classic.clab.yml` or `md.clab.yml`: one SR OS node in classic or in model-driven configuration mode), generates inventory under `clab-ansible/`, and runs the playbooks against Nokia SR-SIM.
+
+Each category names the platforms it applies to (`hosts`), the same pattern as the hosts of its playbooks: `all`, `nokia_srsim_classic` (the classic-mode lab) or `nokia_srsim` (the model-driven lab). `platforms.yml` declares these groups and `ansible.cfg` sets `host_pattern_mismatch = error`, so a playbook whose hosts name a misspelled group fails. A category with no matching host in the lab, such as the classic categories in the model-driven lab, is reported as skipped. The first play name of a playbook is its test title in the results.
 
 ## Prerequisites
 
-- Docker and containerlab
-- SR OS container image `registry.srlinux.dev/pub/nokia_srsim` (optional `SROS_VERSION`; default in `topo.clab.yml`)
+- Docker and containerlab 0.83.0 or newer (older releases render a TLS 1.3 cipher that SR OS 26.7 and newer reject)
+- SR OS container image `registry.srlinux.dev/pub/nokia_srsim` (optional `SROS_VERSION`; default in the topologies)
 - License file at `tests/license.txt`, or `SRSIM_LICENSE_FILE` pointing at one (required for deploy)
 
 ## Quick run
 
 ```bash
-make test-integration-sros        # deploy, run all playbooks, destroy
+make test-integration        # deploy, run all playbooks, destroy
 ```
 
 Or step by step:
 
 ```bash
 cd tests
-./run.sh deploy
+./run.sh deploy --topo md.clab.yml
 ./run.sh run --quiet              # or --category netconf
-./run.sh destroy
+./run.sh destroy --topo md.clab.yml
 ```
 
-`SROS_VERSION=<tag> ./run.sh deploy` overrides the image tag. `./run.sh help` lists all options.
+`SROS_VERSION=<tag> ./run.sh deploy` overrides the image tag, `SROS_IMAGE=<path>` the image path (`make test-integration` takes them as `SROS_VERSION` and `REGISTRY`). `./run.sh help` lists all options.
 Results: `tests/output/junit/<suite>.xml` (one testcase per playbook) and `tests/output/logs/`.
 
 ## Local inventory (no containerlab)

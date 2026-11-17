@@ -52,7 +52,7 @@ ansible-galaxy collection install nokia.sros --upgrade
 Each [GitHub release](https://github.com/nokia-steward/sros-ansible-integration/releases) has the collection tarball attached, the same artifact that is published on Galaxy:
 
 ```bash
-VERSION=2.2.0
+VERSION=2.2.1
 curl -LO https://github.com/nokia-steward/sros-ansible-integration/releases/download/${VERSION}/nokia-sros-${VERSION}.tar.gz
 ansible-galaxy collection install nokia-sros-${VERSION}.tar.gz --force
 ```

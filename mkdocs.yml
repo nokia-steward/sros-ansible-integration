@@ -90,7 +90,7 @@ markdown_extensions:
 - pymdownx.tasklist:
     custom_checkbox: true
 extra:
-  version: 2.2.0
+  version: 2.2.1
   social:
   - icon: fontawesome/brands/github
     link: https://github.com/nokia-steward/sros-ansible-integration

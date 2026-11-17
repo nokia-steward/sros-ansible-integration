@@ -64,23 +64,24 @@ make install
 
 Pull the `nokia_srsim` container image(s) and place a valid SR OS license file at `tests/license.txt`
 (or point `SRSIM_LICENSE_FILE` at it).
-Install [containerlab](https://containerlab.dev):
+Install [containerlab](https://containerlab.dev) 0.83.0 or newer (0.82.0 is the first release that
+leaves out the TLS 1.3 cipher `tls-aes128-ccm8-sha256`, which SR OS 26.7 and newer reject):
 
 ```bash
-bash -c "$(curl -sL https://get.containerlab.dev)"
+bash -c "$(curl -sL https://get.containerlab.dev)" -- -v 0.83.0
 ```
 
 ### 6. Deploy the lab and run the integration tests
 
 ```bash
 cd tests
-./run.sh deploy
+./run.sh deploy --topo md.clab.yml
 ./run.sh run --quiet
-./run.sh destroy
+./run.sh destroy --topo md.clab.yml
 ```
 
-`make test-integration-sros` (or `tests/run.sh integration`) runs deploy, all playbooks and destroy
-in one step. Results are written to `tests/output/junit/` and the playbook logs to `tests/output/logs/`.
+`make test-integration` (or `tests/run.sh integration --topo md.clab.yml`) runs deploy, all playbooks
+and destroy in one step; `SROS_CONFIG_MODE=classic` runs the classic-mode lab instead of the md lab. Results are written to `tests/output/junit/` and the playbook logs to `tests/output/logs/`.
 
 ✅ **Tip:**
 This workflow is consistent across Linux, macOS, and BSD systems. Only the package-installation commands may vary.
@@ -99,7 +100,7 @@ Follow Ansible and Python best practices:
 
   * `make ci` (Python syntax, playbook syntax, flake8, pylint, yamllint, ansible-lint, bandit, pip-audit)
   * `make sanity` (`ansible-test sanity`, including pep8, pylint and validate-modules)
-  * `make test-integration-sros` (containerlab integration tests)
+  * `make test-integration` (containerlab integration tests)
 
 ---
 
@@ -125,7 +126,7 @@ We welcome all contributions — from small fixes to major enhancements. Whether
 
 Before submitting a pull request:
 
-* Run `make sanity` and the integration tests (`make test-integration-sros`)
+* Run `make sanity` and the integration tests (`make test-integration`)
 * Follow [PEP 8](https://peps.python.org/pep-0008/) and Ansible plugin guidelines
 * Ensure changes are documented and clearly commented
 * Update or add integration tests where relevant

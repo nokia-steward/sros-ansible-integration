@@ -42,13 +42,14 @@ LAB_CAPABILITIES = ("srlinux", "srsim")
 NAME_RE = re.compile(r"^[a-z][a-z0-9_]*$")
 SUITE_RE = re.compile(r"^[a-z][a-z0-9-]*$")
 ENV_RE = re.compile(r"^[A-Z][A-Z0-9_]*$")
-VALUE_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._+-]*$")
+VALUE_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._+/-]*$")
+LABEL_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9 ._+/-]{0,29}$")
 APT_RE = re.compile(r"^[a-z0-9][a-z0-9.+-]*$")
 RESERVED_ENV = ("PATH", "HOME", "STEWARD_SUITE", "STEWARD_CASE")
 
 TOP_KEYS = ("version", "environment", "inputs", "suites")
 ENVIRONMENT_KEYS = ("services", "apt")
-INPUT_KEYS = ("toolchain", "env", "requires")
+INPUT_KEYS = ("toolchain", "env", "requires", "labels")
 SUITE_KEYS = ("run", "timeout_minutes", "requires", "cases")
 
 
@@ -68,6 +69,7 @@ class Case:
     requires: tuple[str, ...]
     toolchains: dict[str, str] = field(default_factory=dict)
     env: dict[str, str] = field(default_factory=dict)
+    labels: dict[str, str] = field(default_factory=dict)  # input: the project's name for its value (classic: Classic)
 
     @property
     def label(self) -> str:
@@ -173,6 +175,18 @@ def validate(data) -> list[str]:
             else:
                 seen_env[env] = key
         _capabilities(spec.get("requires"), f"{where}.requires", errors)
+        labels = spec.get("labels")
+        if labels is not None:
+            if not isinstance(labels, dict) or not labels:
+                errors.append(f"{where}.labels: must be a mapping of value to the text a report shows for it")
+            else:
+                for value, text in labels.items():
+                    if isinstance(value, float) or not VALUE_RE.match(str(value)):
+                        errors.append(f"{where}.labels: '{value}' is not a valid case value (quote versions)")
+                    if not isinstance(text, str) or not LABEL_RE.match(text):
+                        errors.append(
+                            f"{where}.labels.{value}: use up to 30 letters, digits, spaces, '.', '_', '+', '/' or '-'"
+                        )
 
     suites = data.get("suites")
     if not isinstance(suites, dict) or not suites:
@@ -215,7 +229,7 @@ def validate(data) -> list[str]:
                 if isinstance(value, float):
                     errors.append(f"{cwhere}.{key}: quote versions: YAML read this as the number {value}")
                 elif isinstance(value, bool) or not isinstance(value, (str, int)) or not VALUE_RE.match(str(value)):
-                    errors.append(f"{cwhere}.{key}: use letters, digits, '.', '_', '+' or '-'")
+                    errors.append(f"{cwhere}.{key}: use letters, digits, '.', '_', '+', '/' or '-'")
             values = {k: v for k, v in case.items() if k != "experimental"}
             if values in seen_cases:
                 errors.append(f"{cwhere}: duplicate case")
@@ -252,10 +266,13 @@ def expand(data: dict) -> list[Case]:
             raw = raw or {}
             values = {k: str(v) for k, v in raw.items() if k != "experimental"}
             requires = set(services) | set(spec.get("requires") or [])
-            toolchains, env = {}, {}
+            toolchains, env, labels = {}, {}, {}
             for key, value in values.items():
                 spec_in = inputs[key]
                 requires |= set(spec_in.get("requires") or [])
+                named = {str(k): v for k, v in (spec_in.get("labels") or {}).items()}
+                if value in named:
+                    labels[key] = named[value]
                 if spec_in.get("toolchain"):
                     toolchains[spec_in["toolchain"]] = value
                 if spec_in.get("env"):
@@ -274,6 +291,7 @@ def expand(data: dict) -> list[Case]:
                     requires=tuple(c for c in CAPABILITIES if c in requires),
                     toolchains=toolchains,
                     env=env,
+                    labels=labels,
                 )
             )
     return cases
