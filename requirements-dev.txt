@@ -14,7 +14,7 @@ ansible-lint>=24.0.0
 
 # Security (CVE / SAST)
 bandit>=1.7.0
-pip-audit>=2.7.0
+pip-audit>=2.10.1
 
 # Documentation (MkDocs site, make docs)
 mkdocs>=1.5.0
