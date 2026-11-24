@@ -6,7 +6,7 @@
 galaxy-importer>=0.4.44
 
 # Code quality
-pylint>=3.0.0
+pylint>=4.1.4
 flake8>=6.0.0,<7
 flake8-bugbear>=24.0.0,<26.11.9
 yamllint>=1.38.0
